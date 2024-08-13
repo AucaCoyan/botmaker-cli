@@ -3,8 +3,10 @@
 	"version": "0.1.8",
 	"description": "botmaker-console",
 	"main": "index.js",
+	"type": "module",
 	"scripts": {
-		"start": "node run.js",
+		"start": "node src/run.js",
+		"dev": "bun bin/bmc.js",
 		"fmt": "biome format . --write",
 		"lint": "biome lint . --write",
 		"test": "echo \"Error: no test specified\" && exit 1"
@@ -40,6 +42,9 @@
 		"fs-extra": "^9.1.0",
 		"node-diff3": "^2.1.2",
 		"yargs": "^16.2.0"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^1.8.3"
 	},
 	"repository": {
 		"type": "git",

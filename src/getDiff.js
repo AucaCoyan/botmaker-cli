@@ -1,24 +1,32 @@
-const { getBmc } = require("./bmcConfig");
-const getStatus = require("./getStatus");
-const getWorkspacePath = require("./getWorkspacePath");
-const diff = require("diff");
-const chalk = require("chalk");
-const path = require("path");
-const util = require("util");
-const fs = require("fs");
-const os = require("os");
-const utils = require("./utils");
-const exec = require("child_process").exec;
-const Diff3 = require("node-diff3");
-const { EOL } = require("os");
+import { getBmc } from "./bmcConfig.js";
+import getStatus from "./getStatus.js";
+import getWorkspacePath from "./getWorkspacePath.js";
+import { diffLines } from "diff";
+import chalk from "chalk";
 
-const mkdtemp = util.promisify(fs.mkdtemp);
-const writeFile = util.promisify(fs.writeFile);
-const chmod = util.promisify(fs.chmod);
+const green = chalk.green;
+const red = chalk.red;
 
-const lineCounter = (text) => {
-	let count = 1,
-		pos = 0;
+import { join } from "node:path";
+import { promisify } from "node:util";
+import {
+	mkdtemp as _mkdtemp,
+	writeFile as _writeFile,
+	chmod as _chmod,
+} from "node:fs";
+import { tmpdir } from "node:os";
+import utils from "./utils.js";
+import { exec } from "node:child_process";
+import { diff3Merge } from "node-diff3";
+import { EOL } from "node:os";
+
+const mkdtemp = promisify(_mkdtemp);
+const writeFile = promisify(_writeFile);
+const chmod = promisify(_chmod);
+
+function lineCounter(text) {
+	let count = 1;
+	let pos = 0;
 	while (true) {
 		pos = text.indexOf("\n", pos);
 		if (pos >= 0) {
@@ -26,7 +34,7 @@ const lineCounter = (text) => {
 			pos += 1;
 		} else return count;
 	}
-};
+}
 
 const openChanges = async (compare, state, caName) => {
 	if (!compare) {
@@ -36,15 +44,9 @@ const openChanges = async (compare, state, caName) => {
 	const tmpFileId1 = utils.makeid(5);
 	const tmpFileId2 = utils.makeid(5);
 	const tmpFileName = state.N || state.n || caName || "unknow";
-	const tmpFolderPath = await mkdtemp(path.join(os.tmpdir(), "bm-cli"));
-	const tmpFilePaht1 = path.join(
-		tmpFolderPath,
-		`${tmpFileName}_${tmpFileId1}.js`,
-	);
-	const tmpFilePaht2 = path.join(
-		tmpFolderPath,
-		`${tmpFileName}_${tmpFileId2}.js`,
-	);
+	const tmpFolderPath = await mkdtemp(join(tmpdir(), "bm-cli"));
+	const tmpFilePaht1 = join(tmpFolderPath, `${tmpFileName}_${tmpFileId1}.js`);
+	const tmpFilePaht2 = join(tmpFolderPath, `${tmpFileName}_${tmpFileId2}.js`);
 
 	await writeFile(tmpFilePaht1, compare[0] || "", "UTF-8");
 	await writeFile(tmpFilePaht2, compare[1] || "", "UTF-8");
@@ -53,12 +55,12 @@ const openChanges = async (compare, state, caName) => {
 	exec(`code -d "${tmpFilePaht1}" "${tmpFilePaht2}"`);
 };
 
-const getMerge = (local, original, remote) => {
-	const merger = Diff3.diff3Merge(
+function getMerge(local, original, remote) {
+	const merger = diff3Merge(
 		local.split(/\r?\n/),
 		original.split(/\r?\n/),
 		remote.split(/\r?\n/),
-		{ excludeFalseConflicts: false },
+		{ excludeFalseConflicts: false }
 	);
 	let conflict = false;
 	let lines = [];
@@ -73,7 +75,7 @@ const getMerge = (local, original, remote) => {
 				item.conflict.a,
 				["======="],
 				item.conflict.b,
-				[">>>>>>>"],
+				[">>>>>>>"]
 			);
 		}
 	}
@@ -81,7 +83,7 @@ const getMerge = (local, original, remote) => {
 		conflict: conflict,
 		result: lines.join(EOL),
 	};
-};
+}
 
 const showChanges = (compare) => {
 	if (!compare) {
@@ -90,13 +92,13 @@ const showChanges = (compare) => {
 	const f1 = compare[0] || "";
 	const f2 = compare[1] || "";
 	if (f1 === f2) {
-		console.log(chalk.green("They are equals."));
+		console.log(green("They are equals."));
 		return;
 	}
 	const maxLines = Math.max(lineCounter(f1), lineCounter(f2));
 	const pad = maxLines.toString().length;
 	const withPad = (text) => text.toString().padStart(pad);
-	const diferences = diff.diffLines(f1, f2);
+	const diferences = diffLines(f1, f2);
 	let aLineCount = 1,
 		bLineCount = 1;
 	diferences.forEach((p, pi) => {
@@ -109,15 +111,13 @@ const showChanges = (compare) => {
 		if (p.added) {
 			lines.forEach((l, i) =>
 				console.log(
-					chalk.green(` ${withPad(aLineCount + i)} ${withPad("+")} | ${l}`),
+					green(` ${withPad(aLineCount + i)} ${withPad("+")} | ${l}`),
 				),
 			);
 			aLineCount += lines.length;
 		} else if (p.removed) {
 			lines.forEach((l, i) =>
-				console.log(
-					chalk.red(` ${withPad("-")} ${withPad(bLineCount + i)} | ${l}`),
-				),
+				console.log(red(` ${withPad("-")} ${withPad(bLineCount + i)} | ${l}`)),
 			);
 			bLineCount += lines.length;
 		} else {
@@ -127,20 +127,20 @@ const showChanges = (compare) => {
 						.slice(0, 2)
 						.forEach((l, i) =>
 							console.log(
-								chalk.grey(
+								grey(
 									` ${withPad(aLineCount + i)} ${withPad(bLineCount + i)} | ${l}`,
 								),
 							),
 						);
 				}
-				console.log(chalk.grey("..."));
+				console.log(grey("..."));
 				if (!lastPart) {
 					const from = lines.length - 2;
 					lines
 						.slice(from, from + 2)
 						.forEach((l, i) =>
 							console.log(
-								chalk.grey(
+								grey(
 									` ${withPad(aLineCount + from + i)} ${withPad(bLineCount + from + i)} | ${l}`,
 								),
 							),
@@ -149,7 +149,7 @@ const showChanges = (compare) => {
 			} else {
 				lines.forEach((l, i) =>
 					console.log(
-						chalk.grey(
+						grey(
 							` ${withPad(aLineCount + i)} ${withPad(bLineCount + i)} | ${l}`,
 						),
 					),
@@ -161,7 +161,7 @@ const showChanges = (compare) => {
 	});
 };
 
-const getDiff = async (pwd, caName, code, vsCode = false) => {
+async function getDiff(pwd, caName, code, vsCode = false) {
 	const wpPath = await getWorkspacePath(pwd);
 	const { token, cas } = await getBmc(wpPath);
 	const ca = await getStatus.getCaByNameOrPath(wpPath, cas, caName);
@@ -172,7 +172,7 @@ const getDiff = async (pwd, caName, code, vsCode = false) => {
 	} else {
 		openChanges(changes, status, caName);
 	}
-};
+}
 getDiff.getMerge = getMerge;
 
-module.exports = getDiff;
+export { getMerge, getDiff };

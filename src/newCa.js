@@ -1,15 +1,16 @@
-const util = require("util");
-const fs = require("fs");
-const path = require("path");
-const chalk = require("chalk");
-const exec = require("child_process").exec;
+import { promisify } from "node:util";
+import { writeFile as _writeFile } from "node:fs";
+import { join } from "node:path";
+import chalk from "chalk";
+import { exec } from "node:child_process";
 
-const { getBmc, saveBmc } = require("./bmcConfig");
-const getWorkspacePath = require("./getWorkspacePath");
-const importWorkspace = require("./importWorkspace");
-const { createCa } = require("./bmService");
+import { getBmc, saveBmc } from "./bmcConfig.js";
+import getWorkspacePath from "./getWorkspacePath.js";
+import { getName } from "./importWorkspace.js";
+import { createCa } from "./bmService.js";
 
-const writeFile = util.promisify(fs.writeFile);
+const green = chalk.green;
+const writeFile = promisify(_writeFile);
 
 const baseEndPointCa = `const redis = req.connectRedis();
 
@@ -59,38 +60,38 @@ main()
 `;
 
 const createFileAndStatus = async (wpPath, ca, openVsCode) => {
-	const baseName = importWorkspace.formatName(ca.name);
-	const newFileName = await importWorkspace.getName(
-		path.join(wpPath, "src"),
-		baseName,
-		"js",
-	);
+  const baseName = importWorkspace.formatName(ca.name);
+  const newFileName = await getName(
+    join(wpPath, "src"),
+    baseName,
+    "js",
+  );
 
-	const filePath = path.join(wpPath, "src", newFileName);
-	await writeFile(filePath, ca.publishedCode, "UTF-8");
-	console.log(chalk.green(`${filePath} was added`));
-	if (openVsCode) {
-		exec(`code "${filePath}"`);
-	}
-	return {
-		...ca,
-		filename: newFileName,
-	};
+  const filePath = join(wpPath, "src", newFileName);
+  await writeFile(filePath, ca.publishedCode, "UTF-8");
+  console.log(green(`${filePath} was added`));
+  if (openVsCode) {
+    exec(`code "${filePath}"`);
+  }
+  return {
+    ...ca,
+    filename: newFileName,
+  };
 };
 
 const newCa = async (pwd, caName, type, openVsCode = false) => {
-	const newCa = {
-		publishedCode: type === "USER" ? baseCa : baseEndPointCa,
-		name: caName,
-		type: type,
-	};
-	const wpPath = await getWorkspacePath(pwd);
-	const { token, cas } = await getBmc(wpPath);
-	const resp = await createCa(token, newCa);
-	const ca = JSON.parse(resp.body);
-	const status = await createFileAndStatus(wpPath, ca, openVsCode);
-	const newCas = cas.concat(status);
-	await saveBmc(wpPath, token, newCas);
+  const newCa = {
+    publishedCode: type === "USER" ? baseCa : baseEndPointCa,
+    name: caName,
+    type: type,
+  };
+  const wpPath = await getWorkspacePath(pwd);
+  const { token, cas } = await getBmc(wpPath);
+  const resp = await createCa(token, newCa);
+  const ca = JSON.parse(resp.body);
+  const status = await createFileAndStatus(wpPath, ca, openVsCode);
+  const newCas = cas.concat(status);
+  await saveBmc(wpPath, token, newCas);
 };
 
-module.exports = newCa;
+export default newCa;

@@ -1,33 +1,40 @@
-const getStatus = require("./getStatus");
-const path = require("path");
-const util = require("util");
-const fs = require("fs");
-const chalk = require("chalk");
+import {
+	ChangeType,
+	getSingleStatusChanges,
+	getStatusChanges,
+} from "./getStatus.js";
+import { join } from "node:path";
+import { promisify } from "node:util";
+import { writeFile as _writeFile, unlink } from "node:fs";
+import chalk from "chalk";
 
-const { getBmc } = require("./bmcConfig");
-const getWorkspacePath = require("./getWorkspacePath");
-const getDiff = require("./getDiff");
-const importWorkspace = require("./importWorkspace");
+import { getBmc } from "./bmcConfig.js";
+import getWorkspacePath from "./getWorkspacePath.js";
+import { getMerge } from "./getDiff.js";
+import { formatName, getName } from "./importWorkspace.js";
 
-const writeFile = util.promisify(fs.writeFile);
-const rm = util.promisify(fs.unlink);
+const bgRed = chalk.bgRed;
+const red = chalk.red;
+const yellow = chalk.yellow;
+const green = chalk.green;
+
+const writeFile = promisify(_writeFile);
+const rm = promisify(unlink);
 
 const makeChanges = async (wpPath, cas, status, changes) => {
-	const notAdded = changes.includes(getStatus.ChangeType.NOT_ADDED);
-	const hasLocalChanges = changes.includes(getStatus.ChangeType.LOCAL_CHANGES);
-	const hasIncomingChanges = changes.includes(
-		getStatus.ChangeType.INCOMING_CHANGES,
-	);
-	const wasAdded = changes.includes(getStatus.ChangeType.NEW_CA);
-	const removeLocal = changes.includes(getStatus.ChangeType.REMOVE_LOCAL);
-	const removeRemote = changes.includes(getStatus.ChangeType.REMOVE_REMOTE);
+	const notAdded = changes.includes(ChangeType.NOT_ADDED);
+	const hasLocalChanges = changes.includes(ChangeType.LOCAL_CHANGES);
+	const hasIncomingChanges = changes.includes(ChangeType.INCOMING_CHANGES);
+	const wasAdded = changes.includes(ChangeType.NEW_CA);
+	const removeLocal = changes.includes(ChangeType.REMOVE_LOCAL);
+	const removeRemote = changes.includes(ChangeType.REMOVE_REMOTE);
 
 	if (notAdded) {
 		return cas;
 	}
 	if (removeLocal && hasIncomingChanges) {
 		console.log(
-			chalk.bgRed(
+			bgRed(
 				`WARNING: ${status.name} has incoming changes but was deleted locally`,
 			),
 		);
@@ -35,79 +42,58 @@ const makeChanges = async (wpPath, cas, status, changes) => {
 	}
 	if (hasLocalChanges && removeRemote) {
 		console.log(
-			chalk.bgRed(
-				`WARNING: ${path.join(wpPath, "src", status.fn)} has local changes but was deleted remotly.`,
+			bgRed(
+				`WARNING: ${join(wpPath, "src", status.fn)} has local changes but was deleted remotly.`,
 			),
 		);
 		return cas;
 	}
 
 	if (removeRemote) {
-		console.log(
-			chalk.red(`${path.join(wpPath, "src", status.fn)} was deleted`),
-		);
-		await rm(path.join(wpPath, "src", status.fn));
+		console.log(red(`${join(wpPath, "src", status.fn)} was deleted`));
+		await rm(join(wpPath, "src", status.fn));
 		return cas.filter((ca) => ca.id !== status.id);
-	} else if (hasLocalChanges && hasIncomingChanges) {
+	}
+	if (hasLocalChanges && hasIncomingChanges) {
 		const remote = status.U || status.P;
 		const original = status.u || status.p;
 		const local = status.f;
-		const { conflict, result } = getDiff.getMerge(local, original, remote);
+		const { conflict, result } = getMerge(local, original, remote);
 		if (conflict) {
 			console.log(
-				chalk.bgRed(
-					`WARNING: ${path.join(wpPath, "src", status.fn)} has merge conflicts`,
-				),
+				bgRed(`WARNING: ${join(wpPath, "src", status.fn)} has merge conflicts`),
 			);
 		} else {
 			console.log(
-				chalk.yellow(
-					`WARNING: ${path.join(wpPath, "src", status.fn)} was merged automatically`,
+				yellow(
+					`WARNING: ${join(wpPath, "src", status.fn)} was merged automatically`,
 				),
 			);
 		}
-		await writeFile(path.join(wpPath, "src", status.fn), result, "UTF-8");
+		await writeFile(join(wpPath, "src", status.fn), result, "UTF-8");
 	} else if (hasIncomingChanges) {
 		const newVersion = status.U || status.P;
 
 		if (status.fn) {
-			console.log(
-				chalk.green(`${path.join(wpPath, "src", status.fn)} has changes`),
-			);
-			await writeFile(path.join(wpPath, "src", status.fn), newVersion, "UTF-8");
+			console.log(green(`${join(wpPath, "src", status.fn)} has changes`));
+			await writeFile(join(wpPath, "src", status.fn), newVersion, "UTF-8");
 		} else {
 			// new File
-			const baseName = importWorkspace.formatName(status.N);
-			const newFileName = await importWorkspace.getName(
-				path.join(wpPath, "src"),
-				baseName,
-				"js",
-			);
+			const baseName = formatName(status.N);
+			const newFileName = await getName(join(wpPath, "src"), baseName, "js");
 
-			await writeFile(
-				path.join(wpPath, "src", newFileName),
-				newVersion,
-				"UTF-8",
-			);
+			await writeFile(join(wpPath, "src", newFileName), newVersion, "UTF-8");
 			status.fn = newFileName;
-			console.log(
-				chalk.green(`${path.join(wpPath, "src", status.fn)} was added`),
-			);
+			console.log(green(`${join(wpPath, "src", status.fn)} was added`));
 		}
 	} else if (wasAdded) {
 		const newVersion = status.U || status.P;
 		// new File
-		const baseName = importWorkspace.formatName(status.N);
-		const newFileName = await importWorkspace.getName(
-			path.join(wpPath, "src"),
-			baseName,
-			"js",
-		);
+		const baseName = formatName(status.N);
+		const newFileName = await getName(join(wpPath, "src"), baseName, "js");
 
-		await writeFile(path.join(wpPath, "src", newFileName), newVersion, "UTF-8");
-		console.log(
-			chalk.green(`${path.join(wpPath, "src", newFileName)} was added`),
-		);
+		await writeFile(join(wpPath, "src", newFileName), newVersion, "UTF-8");
+		console.log(green(`${join(wpPath, "src", newFileName)} was added`));
 		return cas.concat({
 			publishedCode: status.P,
 			unPublishedCode: status.U,
@@ -122,38 +108,33 @@ const makeChanges = async (wpPath, cas, status, changes) => {
 		ca.id !== status.id
 			? ca
 			: {
-					publishedCode: status.P,
-					unPublishedCode: status.U,
-					name: status.N,
-					type: status.T,
-					id: status.id,
-					filename: status.fn,
-				},
+				publishedCode: status.P,
+				unPublishedCode: status.U,
+				name: status.N,
+				type: status.T,
+				id: status.id,
+				filename: status.fn,
+			},
 	);
 };
 
 const hasMerge = (changes) => {
-	const hasLocalChanges = changes.includes(getStatus.ChangeType.LOCAL_CHANGES);
-	const hasIncomingChanges = changes.includes(
-		getStatus.ChangeType.INCOMING_CHANGES,
-	);
+	const hasLocalChanges = changes.includes(ChangeType.LOCAL_CHANGES);
+	const hasIncomingChanges = changes.includes(ChangeType.INCOMING_CHANGES);
 	return hasLocalChanges && hasIncomingChanges;
 };
 
 const singlePull = async (pwd, caName) => {
 	const wpPath = await getWorkspacePath(pwd);
 	const { token, cas } = await getBmc(wpPath);
-	const { changes, status } = await getStatus.getSingleStatusChanges(
-		pwd,
-		caName,
-	);
+	const { changes, status } = await getSingleStatusChanges(pwd, caName);
 	const newCas = await makeChanges(wpPath, cas, status, changes);
 	if (newCas === cas) {
-		console.log(chalk.green("Already up to date. :)"));
+		console.log(green("Already up to date. :)"));
 		return false;
 	}
 	await writeFile(
-		path.join(wpPath, ".bmc"),
+		join(wpPath, ".bmc"),
 		JSON.stringify({ token, cas: newCas }),
 		"UTF-8",
 	);
@@ -163,32 +144,31 @@ const singlePull = async (pwd, caName) => {
 const completePull = async (pwd) => {
 	const wpPath = await getWorkspacePath(pwd);
 	const { token, cas } = await getBmc(wpPath);
-	const changesGenerator = getStatus.getStatusChanges(pwd);
+	const changesGenerator = getStatusChanges(pwd);
 	let newCas = cas;
 	let withMerges = false;
-	for await (let statucChanges of changesGenerator) {
+	for await (const statucChanges of changesGenerator) {
 		const { status, changes } = statucChanges;
 		newCas = await makeChanges(wpPath, newCas, status, changes);
 		withMerges = withMerges || hasMerge(changes);
 	}
 	if (newCas === cas) {
-		console.log(chalk.green("Already up to date. :)"));
+		console.log(green("Already up to date. :)"));
 		return false;
 	}
 	await writeFile(
-		path.join(wpPath, ".bmc"),
+		join(wpPath, ".bmc"),
 		JSON.stringify({ token, cas: newCas }),
 		"UTF-8",
 	);
 	return withMerges;
 };
 
-const pull = async (pwd, caName) => {
+async function pull(pwd, caName) {
 	if (caName) {
 		return await singlePull(pwd, caName);
-	} else {
-		return await completePull(pwd);
 	}
-};
+	return await completePull(pwd);
+}
 
-module.exports = pull;
+export default pull;

@@ -1,17 +1,17 @@
-const getDiff = require("./getDiff");
-const newCa = require("./newCa");
-const pull = require("./pull");
-const push = require("./push");
-const yargs = require("yargs/yargs");
-const run = require("./run");
-const importWorkspace = require("./importWorkspace");
-const setCustomer = require("./setCustomer");
-const getStatus = require("./getStatus");
-const publish = require("./publish");
-const rename = require("./rename");
-const listCas = require("./listCas");
+import { getDiff } from "./getDiff.js";
+import newCa from "./newCa.js";
+import pull from "./pull.js";
+import push from "./push.js";
+import yargs from "yargs";
+import run from "./run.js";
+import { importWorkspace } from "./importWorkspace.js";
+import { setCustomer } from "./setCustomer.js";
+import getStatus from "./getStatus.js";
+import publish from "./publish.js";
+import rename from "./rename.js";
+import listCas from "./listCas.js";
 
-const main = async (args) => {
+async function main(args) {
 	const pwd = process.cwd();
 	const arrgs = yargs(args)
 		.scriptName("bmc")
@@ -77,47 +77,55 @@ const main = async (args) => {
 
 	switch (arrgs._[0]) {
 		case "set-customer":
-		case "c":
+		case "c": {
 			const { customerId } = arrgs;
 			await setCustomer(pwd, customerId);
 			break;
+		}
 		case "diff":
-		case "d":
+		case "d": {
 			const { caName: caName1, code, v: vsCode } = arrgs;
 			await getDiff(pwd, caName1, code, vsCode);
 			break;
+		}
 		case "import":
-		case "i":
+		case "i": {
 			const { apiToken } = arrgs;
 			await importWorkspace(pwd, apiToken);
 			break;
+		}
 		case "list":
 		case "ls":
 			await listCas(pwd);
 			break;
 		case "new":
-		case "n":
+		case "n": {
 			const { caName: caName3, v: vsCode1, e } = arrgs;
 			await newCa(pwd, caName3, e ? "ENDPOINT" : "USER", vsCode1);
 			break;
-		case "publish":
+		}
+		case "publish": {
 			const { caName: caName5 } = arrgs;
 			await publish(pwd, caName5);
 			break;
-		case "pull":
+		}
+		case "pull": {
 			const { caName: caName2 } = arrgs;
 			await pull(pwd, caName2);
 			break;
-		case "push":
+		}
+		case "push": {
 			const { caName: caName4, b } = arrgs;
 			await push(pwd, caName4, b ? "TRUE" : "FALSE");
 			break;
-		case "rename":
+		}
+		case "rename": {
 			const { caName: caName6, newName } = arrgs;
 			await rename(pwd, caName6, newName);
 			break;
+		}
 		case "run":
-		case "r":
+		case "r": {
 			const {
 				source,
 				v = [],
@@ -128,17 +136,19 @@ const main = async (args) => {
 			} = arrgs;
 			await run(pwd, source, { vars: v, params: p, volatile, endpoint, port });
 			break;
+		}
 		case "status":
-		case "s":
+		case "s": {
 			const { caName } = arrgs;
 			await getStatus(pwd, caName);
 			break;
+		}
 		default:
 			console.error(`bmc: '${arrgs._[0]}' is not a bmc command. See 'bmc -h'`);
 			process.exit(-1);
 	}
-};
+}
 
-module.exports = (args) => {
+export default (args) => {
 	main(args).catch((e) => console.error(`bmc: ${e.message || e}`));
 };

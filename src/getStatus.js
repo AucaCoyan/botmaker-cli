@@ -1,21 +1,29 @@
-const path = require("path");
-const util = require("util");
-const fs = require("fs");
-const chalk = require("chalk");
+import { join, isAbsolute, relative, basename } from "node:path";
+import { promisify } from "node:util";
+import {
+	readFile as _readFile,
+	exists as _exists,
+	readdir as _readdir,
+} from "node:fs";
+import chalk from "chalk";
 
-const { getAllCas, getCa } = require("./bmService");
-const { getBmc } = require("./bmcConfig");
-const getWorkspacePath = require("./getWorkspacePath");
+import { getAllCas, getCa } from "./bmService.js";
+import { getBmc } from "./bmcConfig.js";
+import getWorkspacePath from "./getWorkspacePath.js";
 
-const readFile = util.promisify(fs.readFile);
-const exists = util.promisify(fs.exists);
-const readdir = util.promisify(fs.readdir);
+const italic = chalk.italic;
+const gray = chalk.gray;
 
-const processCode = (code, status, gate) => {
+const readFile = promisify(_readFile);
+const exists = promisify(_exists);
+const readdir = promisify(_readdir);
+
+function processCode(code, status, gate) {
 	if (Array.isArray(code)) {
 		if (!gate) {
 			return code.some((c) => processCode(c, status));
-		} else if (gate === "AND") {
+		}
+		if (gate === "AND") {
 			return code.every((c) => processCode(c, status));
 		}
 	}
@@ -33,7 +41,7 @@ const processCode = (code, status, gate) => {
 		return true;
 	}
 	return processCode(code.substr(1), status);
-};
+}
 
 class ChangeStatusType {
 	constructor(label, short, code, color, diff) {
@@ -138,10 +146,10 @@ const posibleChanges = Object.values(ChangeType);
 const getCaPath = async (wpPath, caName) => {
 	const posiblePaths = [
 		caName,
-		caName && path.join(wpPath, caName),
-		caName && path.join(wpPath, "src", caName),
-		caName && path.join(wpPath, caName + ".js"),
-		caName && path.join(wpPath, "src", caName + ".js"),
+		caName && join(wpPath, caName),
+		caName && join(wpPath, "src", caName),
+		caName && join(wpPath, `${caName}.js`),
+		caName && join(wpPath, "src", `${caName}.js`),
 	];
 
 	for (const path of posiblePaths) {
@@ -153,12 +161,11 @@ const getCaPath = async (wpPath, caName) => {
 	return null;
 };
 
-const getCaByNameOrPath = async (wpPath, cas, caName) => {
+export async function getCaByNameOrPath(wpPath, cas, caName) {
 	if (!caName) return;
-	if (path.isAbsolute(caName)) {
+	if (isAbsolute(caName)) {
 		return cas.find(
-			(ca) =>
-				path.relative(path.join(wpPath, "src", ca.filename), caName) === "",
+			(ca) => relative(join(wpPath, "src", ca.filename), caName) === "",
 		);
 	}
 
@@ -169,9 +176,9 @@ const getCaByNameOrPath = async (wpPath, cas, caName) => {
 
 	const byPath = cas.find(
 		(ca) =>
-			path.relative(
-				path.join(wpPath, "src", ca.filename),
-				path.join(wpPath, "src", caName),
+			relative(
+				join(wpPath, "src", ca.filename),
+				join(wpPath, "src", caName),
 			) === "",
 	);
 	if (byPath) {
@@ -179,7 +186,7 @@ const getCaByNameOrPath = async (wpPath, cas, caName) => {
 	}
 
 	const byFileName = cas.find(
-		(ca) => ca.filename === caName || ca.filename === caName + ".js",
+		(ca) => ca.filename === caName || ca.filename === `${caName}.js`,
 	);
 	if (byFileName) {
 		return byFileName;
@@ -187,10 +194,10 @@ const getCaByNameOrPath = async (wpPath, cas, caName) => {
 
 	const nonAdded = await getCaPath(wpPath, caName);
 	if (nonAdded) {
-		return { filename: path.basename(nonAdded) };
+		return { filename: basename(nonAdded) };
 	}
 	throw new Error(`'${caName}' not found`);
-};
+}
 
 const getLocalStatus = async (wpPath, ca) => {
 	if (!ca.filename) {
@@ -204,7 +211,7 @@ const getLocalStatus = async (wpPath, ca) => {
 			fn: null,
 		}; // noLocal
 	}
-	const filePath = ca.filename && path.join(wpPath, "src", ca.filename);
+	const filePath = ca.filename && join(wpPath, "src", ca.filename);
 	const existFile = filePath && (await exists(filePath));
 	const f = existFile ? await readFile(filePath, "UTF-8") : null;
 	if (f && f.search(/(^<<<<<<<|^========|^>>>>>>>)/gm) !== -1) {
@@ -289,7 +296,7 @@ const showChanges = (changes, ca) => {
 		const caName = typeof ca === "string" ? ca : ca.n || ca.N;
 		const caFileName = ca.fn;
 		const caDesc = caFileName
-			? `${chalk.italic(caFileName)} ${caName ? chalk.gray(caName) : ""}`
+			? `${italic(caFileName)} ${caName ? gray(caName) : ""}`
 			: caName;
 		console.log(`${changesDesc}: ${caDesc}`);
 	}
@@ -318,9 +325,9 @@ async function* getStatusChanges(pwd) {
 	const newCas = remoteCas.filter((rca) =>
 		cas.every((lca) => lca.id !== rca.id),
 	);
-	const localCas = await readdir(path.join(wpPath, "src"));
+	const localCas = await readdir(join(wpPath, "src"));
 	const newLocalCasFiles = localCas
-		.map((ca) => path.basename(ca))
+		.map((ca) => basename(ca))
 		.filter((filename) => cas.every((lca) => lca.filename !== filename));
 	const newLocalCas = newLocalCasFiles.map((filename) => ({ filename }));
 	const allCas = [...cas, ...newCas, ...newLocalCas].sort((ca1, ca2) => {
@@ -328,27 +335,27 @@ async function* getStatusChanges(pwd) {
 		const c2 = ca2.name || ca2.filename;
 		return c1.localeCompare(c2);
 	});
-	for (let ca of allCas) {
+	for (const ca of allCas) {
 		const status = await getStatusData(wpPath, ca, remoteCas);
 		const changes = getChangesFromStatus(status);
 		yield { changes, status };
 	}
 }
 
-const getStatus = async (pwd, caName) => {
+async function getStatus(pwd, caName) {
 	if (caName) {
 		const statusChanges = await getSingleStatusChanges(pwd, caName);
 		const ca = statusChanges.status;
 		const caDesc =
 			typeof ca === "string"
 				? ca
-				: `${chalk.italic(ca.fn)} ${ca.n ? chalk.gray(ca.n) : ""}`;
-		console.log(caDesc + "\n");
+				: `${italic(ca.fn)} ${ca.n ? gray(ca.n) : ""}`;
+		console.log(`${caDesc}\n`);
 		showChanges(statusChanges.changes);
 	} else {
 		const statusChanges = getStatusChanges(pwd, caName);
 		const changesSet = new Set();
-		for await (let statusChange of statusChanges) {
+		for await (const statusChange of statusChanges) {
 			if (statusChange.changes.length === 0) {
 				continue;
 			}
@@ -358,7 +365,7 @@ const getStatus = async (pwd, caName) => {
 		console.log("\nDescription:");
 		showChanges([...changesSet]);
 	}
-};
+}
 
 getStatus.ChangeType = ChangeType;
 getStatus.getSingleStatusChanges = getSingleStatusChanges;
@@ -369,4 +376,5 @@ getStatus.getChangesFromStatus = getChangesFromStatus;
 getStatus.getLocalStatus = getLocalStatus;
 getStatus.getCaByNameOrPath = getCaByNameOrPath;
 
-module.exports = getStatus;
+export { getStatus, getStatusChanges, getSingleStatusChanges, ChangeType };
+export default getStatus

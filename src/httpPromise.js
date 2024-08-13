@@ -1,8 +1,8 @@
-const https = require("https");
+import { request } from "https";
 
-module.exports = (url, urlOptions, data) => {
+export default (url, urlOptions, data) => {
 	return new Promise((resolve, reject) => {
-		const req = https.request(url, urlOptions, (res) => {
+		const req = request(url, urlOptions, (res) => {
 			res.setEncoding("utf8");
 			let body = "";
 			res.on("data", (chunk) => (body += chunk));

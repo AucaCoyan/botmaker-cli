@@ -1,21 +1,24 @@
-const getStatus = require("./getStatus");
-const path = require("path");
-const util = require("util");
-const fs = require("fs");
+import { ChangeType, getSingleStatusChanges, getStatusChanges } from "./getStatus.js";
 
-const { getBmc, saveBmc } = require("./bmcConfig");
-const getWorkspacePath = require("./getWorkspacePath");
-const { updateCas } = require("./bmService");
-const chalk = require("chalk");
-const publish = require("./publish");
+import { getBmc, saveBmc } from "./bmcConfig.js";
+import getWorkspacePath from "./getWorkspacePath.js";
+import { updateCas } from "./bmService.js";
+import chalk from "chalk";
 
-const { ChangeType } = getStatus;
+const green = chalk.green;
+const red = chalk.red;
+const yellow = chalk.yellow;
+const italic = chalk.italic;
+const grey = chalk.gray;
+
+import publish from "./publish.js";
+
 const maxLength = 100000;
 
 const checkClientActionLength = (text, caName) => {
 	if (text.length > maxLength) {
 		console.log(
-			chalk.red(
+			red(
 				`The code action ${caName} is too big. The maximum size is 100000 characters.`,
 			),
 		);
@@ -23,8 +26,8 @@ const checkClientActionLength = (text, caName) => {
 	}
 };
 
-const getPushChanges = (status, changes) => {
-	const hasLocalChanges = changes.includes(getStatus.ChangeType.LOCAL_CHANGES);
+function getPushChanges(status, changes) {
+	const hasLocalChanges = changes.includes(ChangeType.LOCAL_CHANGES);
 	if (!hasLocalChanges) {
 		return;
 	}
@@ -33,7 +36,7 @@ const getPushChanges = (status, changes) => {
 		id: status.id,
 		unPublishedCode: status.f,
 	};
-};
+}
 
 const applyPush = async (token, changes) => {
 	await updateCas(token, changes);
@@ -52,7 +55,7 @@ const hasIncomingChanges = (changes) => {
 
 const singlePush = async (pwd, caName) => {
 	const wpPath = await getWorkspacePath(pwd);
-	const { changes, status } = await getStatus.getSingleStatusChanges(
+	const { changes, status } = await getSingleStatusChanges(
 		pwd,
 		caName,
 	);
@@ -61,7 +64,7 @@ const singlePush = async (pwd, caName) => {
 	}
 	const pushChanges = getPushChanges(status, changes);
 	if (!pushChanges) {
-		console.log(chalk.green("Nothing to push!. No local changes found."));
+		console.log(green("Nothing to push!. No local changes found."));
 		return;
 	}
 	checkClientActionLength(pushChanges.unPublishedCode, caName);
@@ -78,9 +81,9 @@ const singlePush = async (pwd, caName) => {
 const completePush = async (pwd) => {
 	const wpPath = await getWorkspacePath(pwd);
 	const { token, cas } = await getBmc(wpPath);
-	const changesGenerator = getStatus.getStatusChanges(pwd);
-	let toPush = [];
-	for await (let statucChanges of changesGenerator) {
+	const changesGenerator = getStatusChanges(pwd);
+	const toPush = [];
+	for await (const statucChanges of changesGenerator) {
 		const { status, changes } = statucChanges;
 		if (hasIncomingChanges(changes)) {
 			throw new Error("There is incoming changes you must make an pull first.");
@@ -92,14 +95,14 @@ const completePush = async (pwd) => {
 		}
 	}
 	if (toPush.length === 0) {
-		console.log(chalk.green("Nothing to push!. No local changes found."));
+		console.log(green("Nothing to push!. No local changes found."));
 		return;
 	}
-	console.log(chalk.yellow("Uploading changes for:"));
+	console.log(yellow("Uploading changes for:"));
 	toPush.forEach((update) => {
 		const ca = cas.find((c) => c.id === update.id);
 		console.log(
-			chalk.yellow(` * ${chalk.italic(ca.filename)} `) + chalk.grey(ca.name),
+			yellow(` * ${italic(ca.filename)} `) + grey(ca.name),
 		);
 	});
 	await applyPush(token, toPush);
@@ -121,4 +124,4 @@ const push = async (pwd, caName, forPublish) => {
 	}
 };
 
-module.exports = push;
+export default push;

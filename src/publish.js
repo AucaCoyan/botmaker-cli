@@ -1,9 +1,11 @@
-const getStatus = require("./getStatus");
+import getStatus, { getSingleStatusChanges } from "./getStatus.js";
 
-const { getBmc, saveBmc } = require("./bmcConfig");
-const getWorkspacePath = require("./getWorkspacePath");
-const { publishCa } = require("./bmService");
-const chalk = require("chalk");
+import { getBmc, saveBmc } from "./bmcConfig.js";
+import getWorkspacePath from "./getWorkspacePath.js";
+import { publishCa } from "./bmService.js";
+import chalk from "chalk";
+
+const green = chalk.green;
 
 const { ChangeType } = getStatus;
 
@@ -28,10 +30,7 @@ const isUnpublish = (changes) => {
 
 const publish = async (pwd, caName) => {
 	const wpPath = await getWorkspacePath(pwd);
-	const { changes, status } = await getStatus.getSingleStatusChanges(
-		pwd,
-		caName,
-	);
+	const { changes, status } = await getSingleStatusChanges(pwd, caName);
 
 	if (hasIncomingChanges(changes)) {
 		throw new Error("There is incoming changes. You must make a pull first.");
@@ -40,7 +39,7 @@ const publish = async (pwd, caName) => {
 		throw new Error("There is local changes. You must make a push first.");
 	}
 	if (!isUnpublish(changes)) {
-		console.log(chalk.green("Nothing to publish!"));
+		console.log(green("Nothing to publish!"));
 		return;
 	}
 
@@ -54,4 +53,4 @@ const publish = async (pwd, caName) => {
 	await saveBmc(wpPath, token, newCas);
 };
 
-module.exports = publish;
+export default publish;

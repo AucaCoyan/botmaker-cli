@@ -1,7 +1,7 @@
-import { RequestPromiseAPI } from "request-promise";
-import { RedisClient } from "redis";
-import * as context from "./context.json";
-import fs from "fs";
+import type { RequestPromiseAPI } from "request-promise";
+import type { RedisClient } from "redis";
+import type * as context from "./context.json";
+import fs from "node:fs";
 import lolodashdash from "lodash";
 import moment from "moment";
 import csv from "fast-csv";
@@ -14,7 +14,7 @@ import turfHelpers from "@turf/helpers";
 import jwt from "jsonwebtoken";
 import bluebird from "bluebird";
 import { google } from "googleapis";
-import { Request, Response } from "express";
+import type { Request, Response } from "express";
 
 type BmOptionType =
 	| "url"
@@ -79,11 +79,11 @@ interface BmItemsBuilder {
 
 interface AppleBusinesChatCustomInteractiveMessage {
 	addImageReferenceURL: (
-		url: string = "https://placeimg.com/840/630/animals",
+		url = "https://placeimg.com/840/630/animals",
 	) => AppleBusinesChatCustomInteractiveMessage;
 	setReceivedMessage: (
-		imageRefIndex: number = 0,
-		title: string = "default title",
+		imageRefIndex = 0,
+		title = "default title",
 	) => AppleBusinesChatCustomInteractiveMessage;
 	setCustom: (
 		bid: string,
@@ -97,17 +97,17 @@ interface AppleBusinesChatCustomInteractiveMessage {
 type AppleIconStyles = "icon" | "small" | "large";
 interface AppleBusinesChatAuthenticate {
 	addImageReferenceURL: (
-		url: string = "https://placeimg.com/840/630/animals",
+		url = "https://placeimg.com/840/630/animals",
 	) => AppleBusinesChatAuthenticate;
 	setReceivedMessage: (
-		imageRefIndex: number = 0,
-		title: string = "default title",
+		imageRefIndex = 0,
+		title = "default title",
 		style: AppleIconStyles = "icon",
 		subTitle?: string,
 	) => AppleBusinesChatAuthenticate;
 	setReplyMessage: (
-		imageRefIndex: number = 0,
-		title: string = "default title",
+		imageRefIndex = 0,
+		title = "default title",
 		style: AppleIconStyles = "icon",
 		subTitle?: string,
 	) => AppleBusinesChatAuthenticate;
@@ -120,17 +120,17 @@ interface AppleBusinesChatAuthenticate {
 }
 interface AppleBusinesChatApplePay {
 	addImageReferenceURL: (
-		url: string = "https://placeimg.com/840/630/animals",
+		url = "https://placeimg.com/840/630/animals",
 	) => AppleBusinesChatApplePay;
 	setReceivedMessage: (
-		imageRefIndex: number = 0,
-		title: string = "default title",
+		imageRefIndex = 0,
+		title = "default title",
 		style: AppleIconStyles = "icon",
 		subTitle?: string,
 	) => AppleBusinesChatApplePay;
 	setReplyMessage: (
-		imageRefIndex: number = 0,
-		title: string = "default title",
+		imageRefIndex = 0,
+		title = "default title",
 		style: AppleIconStyles = "icon",
 		subTitle?: string,
 	) => AppleBusinesChatApplePay;
@@ -166,17 +166,17 @@ interface AppleBusinesChatFormsSelectPage {
 }
 interface AppleBusinesChatForms {
 	addImageReferenceURL: (
-		url: string = "https://placeimg.com/840/630/animals",
+		url = "https://placeimg.com/840/630/animals",
 	) => AppleBusinesChatForms;
 	setReceivedMessage: (
-		imageRefIndex: number = 0,
-		title: string = "default title",
+		imageRefIndex = 0,
+		title = "default title",
 		style: AppleIconStyles = "icon",
 		subTitle?: string,
 	) => AppleBusinesChatForms;
 	setReplyMessage: (
-		imageRefIndex: number = 0,
-		title: string = "default title",
+		imageRefIndex = 0,
+		title = "default title",
 		style: AppleIconStyles = "icon",
 		subTitle?: string,
 	) => AppleBusinesChatForms;
@@ -214,25 +214,25 @@ interface AppleBusinesChatForms {
 		title: string,
 		subtitle: string,
 		nextPageId: string | null,
-		isSubmitForm: boolean = false,
-		multipleSelection: boolean = false,
+		isSubmitForm = false,
+		multipleSelection = false,
 	) => AppleBusinesChatFormsSelectPage;
 	send: () => void;
 }
 
 interface AppleBusinesChatTimePicker {
 	addImageReferenceURL: (
-		url: string = "https://placeimg.com/840/630/animals",
+		url = "https://placeimg.com/840/630/animals",
 	) => AppleBusinesChatTimePicker;
 	setReceivedMessage: (
-		imageRefIndex: number = 0,
-		title: string = "default title",
+		imageRefIndex = 0,
+		title = "default title",
 		style: AppleIconStyles = "icon",
 		subTitle?: string,
 	) => AppleBusinesChatTimePicker;
 	setReplyMessage: (
-		imageRefIndex: number = 0,
-		title: string = "default title",
+		imageRefIndex = 0,
+		title = "default title",
 		style: AppleIconStyles = "icon",
 		subTitle?: string,
 	) => AppleBusinesChatTimePicker;
@@ -262,17 +262,17 @@ interface AppleBusinesChatListPickerSection {
 }
 interface AppleBusinesChatListPicker {
 	addImageReferenceURL: (
-		url: string = "https://placeimg.com/840/630/animals",
+		url = "https://placeimg.com/840/630/animals",
 	) => AppleBusinesChatListPicker;
 	setReceivedMessage: (
-		imageRefIndex: number = 0,
-		title: string = "default title",
+		imageRefIndex = 0,
+		title = "default title",
 		style: AppleIconStyles = "icon",
 		subTitle?: string,
 	) => AppleBusinesChatListPicker;
 	setReplyMessage: (
-		imageRefIndex: number = 0,
-		title: string = "default title",
+		imageRefIndex = 0,
+		title = "default title",
 		style: AppleIconStyles = "icon",
 		subTitle?: string,
 	) => AppleBusinesChatListPicker;

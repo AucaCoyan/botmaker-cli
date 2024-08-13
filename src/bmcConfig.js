@@ -1,19 +1,19 @@
-const path = require("path");
-const util = require("util");
-const fs = require("fs");
+import { join } from "path";
+import { promisify } from "util";
+import { readFile as _readFile, writeFile as _writeFile } from "fs";
 
-const readFile = util.promisify(fs.readFile);
-const writeFile = util.promisify(fs.writeFile);
+const readFile = promisify(_readFile);
+const writeFile = promisify(_writeFile);
 
-exports.getBmc = async (wpPath) => {
-	const bmc = await readFile(path.join(wpPath, ".bmc"), "UTF-8");
+export async function getBmc(wpPath) {
+	const bmc = await readFile(join(wpPath, ".bmc"), "UTF-8");
 	return JSON.parse(bmc);
-};
+}
 
-exports.saveBmc = async (wpPath, token, cas) => {
+export async function saveBmc(wpPath, token, cas) {
 	await writeFile(
-		path.join(wpPath, ".bmc"),
+		join(wpPath, ".bmc"),
 		JSON.stringify({ token, cas }),
 		"UTF-8",
 	);
-};
+}

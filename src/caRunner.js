@@ -1,27 +1,28 @@
-const vm = require("vm");
-const rp = require("request-promise");
-const fs = require("fs");
-const lodash = require("lodash");
+import { createContext, runInNewContext } from "vm";
+import rp from "request-promise";
+import fs from "fs";
+import lodash from "lodash";
 const _ = lodash;
-const moment = require("moment");
-const csv = require("fast-csv");
-const md5 = require("md5");
-const sha256 = require("js-sha256");
-const xml2js = require("xml2js");
-const secureRandom = require("secure-random");
-const turf = require("@turf/turf");
-const turfHelpers = require("@turf/helpers");
-const jwt = require("jsonwebtoken");
-const bluebird = require("bluebird");
-const { google } = require("googleapis");
+import moment from "moment";
+import csv from "fast-csv";
+import md5 from "md5";
+import sha256 from "js-sha256";
+import xml2js from "xml2js";
+import secureRandom from "secure-random";
+// import turf from "@turf/turf";
+// import turfHelpers from "@turf/helpers";
+import jwt from "jsonwebtoken";
+// import { promisifyAll } from "bluebird";
+import { google } from "googleapis";
 
-const cloneGlobal = () =>
-	Object.defineProperties(
+function cloneGlobal() {
+	return Object.defineProperties(
 		{ ...global },
 		Object.getOwnPropertyDescriptors(global),
 	);
+}
 
-const ___runMain = (bmContext, code, filename, helpers) => {
+function ___runMain(bmContext, code, filename, helpers) {
 	const context = Object.assign(cloneGlobal(), {
 		...bmContext,
 		rp,
@@ -45,23 +46,23 @@ const ___runMain = (bmContext, code, filename, helpers) => {
 	const mainContext = Object.assign(context, {
 		require: (packageName) => {
 			if (packageName in helpers) {
-				vm.createContext(context);
-				return vm.runInNewContext(helpers[packageName].code, context, {
+				createContext(context);
+				return runInNewContext(helpers[packageName].code, context, {
 					filename: helpers[packageName].source,
 				});
 			}
 			return require(packageName);
 		},
 	});
-	vm.createContext(mainContext);
-	vm.runInNewContext(code, mainContext, { filename });
-};
+	createContext(mainContext);
+	runInNewContext(code, mainContext, { filename });
+}
 
-module.exports = (code, context, helpers, fulfill, token, filename) => {
+function caRunner(code, context, helpers, fulfill, token, filename) {
 	const chalk = require("chalk");
 	const __redisLib__ = require("redis");
-	bluebird.promisifyAll(__redisLib__.RedisClient.prototype);
-	bluebird.promisifyAll(__redisLib__.Multi.prototype);
+	promisifyAll(__redisLib__.RedisClient.prototype);
+	promisifyAll(__redisLib__.Multi.prototype);
 
 	const __parceStackTrace = (error) => {
 		if (error.stack) {
@@ -149,7 +150,7 @@ module.exports = (code, context, helpers, fulfill, token, filename) => {
 				},
 			});
 
-			redis.on("error", function (err) {
+			redis.on("error", (err) => {
 				console.error("Node-redis client error: " + err);
 			});
 			// redis.unref(); // allowing the program to exit once no more commands are pending
@@ -281,7 +282,7 @@ module.exports = (code, context, helpers, fulfill, token, filename) => {
 						return this;
 					},
 					addWebViewButton: function (name, webViewURL, synonyms) {
-						let url =
+						const url =
 							"https://go.botmaker.com/rest/redirect?redirectURL=" +
 							encodeURIComponent(webViewURL);
 						this.message.OPTIONS.push({
@@ -319,7 +320,11 @@ module.exports = (code, context, helpers, fulfill, token, filename) => {
 						return this;
 					},
 					addButton: function (name, ruleNameOrId, type, synonyms) {
-						let action = { intent: ruleNameOrId, button: name, entities: "{}" };
+						const action = {
+							intent: ruleNameOrId,
+							button: name,
+							entities: "{}",
+						};
 						this.message.OPTIONS.push({
 							itemType: type || "postback",
 							value: name || "",
@@ -334,7 +339,7 @@ module.exports = (code, context, helpers, fulfill, token, filename) => {
 						parameters,
 						synonyms,
 					) {
-						let action = {
+						const action = {
 							intent: "CLIENT_ACTION_WITH_PARAMS",
 							button: name,
 							entities: JSON.stringify({
@@ -975,7 +980,7 @@ module.exports = (code, context, helpers, fulfill, token, filename) => {
 			},
 
 			listBuilder: () => {
-				let builder = __itemsBuilder__();
+				const builder = __itemsBuilder__();
 
 				builder.message = {
 					ITEMS: [],
@@ -1042,4 +1047,6 @@ module.exports = (code, context, helpers, fulfill, token, filename) => {
 			});
 		}
 	}
-};
+}
+
+export { caRunner };

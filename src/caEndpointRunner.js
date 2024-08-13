@@ -1,26 +1,27 @@
-const vm = require("vm");
-const rp = require("request-promise");
-const fs = require("fs");
-const lodash = require("lodash");
-const _ = lodash;
-const moment = require("moment");
-const csv = require("fast-csv");
-const md5 = require("md5");
-const xml2js = require("xml2js");
-const secureRandom = require("secure-random");
-const turf = require("@turf/turf");
-const turfHelpers = require("@turf/helpers");
-const jwt = require("jsonwebtoken");
-const bluebird = require("bluebird");
-const { google } = require("googleapis");
+import { createContext, runInNewContext } from "node:vm";
+import chalk from "chalk";
+import rp from "request-promise";
+import fs from "node:fs";
+import lodash from "lodash";
+import moment from "moment";
+import csv from "fast-csv";
+import md5 from "md5";
+import xml2js from "xml2js";
+import secureRandom from "secure-random";
+// import turf from "@turf/turf";
+// import turfHelpers from "@turf/helpers";
+import jwt from "jsonwebtoken";
+// import { promisifyAll } from "bluebird";
+import { google } from "googleapis";
 
-const cloneGlobal = () =>
-	Object.defineProperties(
+function cloneGlobal() {
+	return Object.defineProperties(
 		{ ...global },
 		Object.getOwnPropertyDescriptors(global),
 	);
+}
 
-const ___runMain = (bmContext, code, filename, helpers) => {
+function ___runMain(bmContext, code, filename, helpers) {
 	const context = Object.assign(cloneGlobal(), {
 		...bmContext,
 		request: bmContext.req,
@@ -28,7 +29,6 @@ const ___runMain = (bmContext, code, filename, helpers) => {
 		rp,
 		fs,
 		lodash,
-		_,
 		moment,
 		csv,
 		md5,
@@ -45,8 +45,8 @@ const ___runMain = (bmContext, code, filename, helpers) => {
 	const mainContext = Object.assign(context, {
 		require: (packageName) => {
 			if (packageName in helpers) {
-				vm.createContext(context);
-				return vm.runInNewContext(helpers[packageName].code, context, {
+				createContext(context);
+				return runInNewContext(helpers[packageName].code, context, {
 					filename: helpers[packageName].source,
 				});
 			}
@@ -54,15 +54,14 @@ const ___runMain = (bmContext, code, filename, helpers) => {
 		},
 	});
 
-	vm.createContext(mainContext);
-	vm.runInNewContext(code, mainContext, { filename, timeout: 90 * 60 * 1000 });
-};
+	createContext(mainContext);
+	runInNewContext(code, mainContext, { filename, timeout: 90 * 60 * 1000 });
+}
 
-module.exports = (req, res, token, code, helpers, filePath) => {
-	const chalk = require("chalk");
+export default (req, res, token, code, helpers, filePath) => {
 	const __redisLib__ = require("redis");
-	bluebird.promisifyAll(__redisLib__.RedisClient.prototype);
-	bluebird.promisifyAll(__redisLib__.Multi.prototype);
+	promisifyAll(__redisLib__.RedisClient.prototype);
+	promisifyAll(__redisLib__.Multi.prototype);
 
 	const __parceStackTrace = (error) => {
 		if (error.stack) {
@@ -83,7 +82,7 @@ module.exports = (req, res, token, code, helpers, filePath) => {
 		};
 	};
 	try {
-		let consoleColor = {
+		const consoleColor = {
 			log: chalk.green,
 			warn: chalk.yellow,
 			error: chalk.red,
@@ -91,7 +90,7 @@ module.exports = (req, res, token, code, helpers, filePath) => {
 		const bmconsole = {};
 		["log", "warn", "error"].forEach(
 			(method) =>
-				(bmconsole[method] = function (...p) {
+				(bmconsole[method] = (...p) => {
 					const { caller, line } =
 						__parceStackTrace(new Error()).stack[1] || {};
 					console[method](
@@ -113,8 +112,8 @@ module.exports = (req, res, token, code, helpers, filePath) => {
 				},
 			});
 
-			redis.on("error", function (err) {
-				console.error("Node-redis client error: " + err);
+			redis.on("error", (err) => {
+				console.error(`Node-redis client error: ${err}`);
 			});
 			// redis.unref(); // allowing the program to exit once no more commands are pending
 			return redis;

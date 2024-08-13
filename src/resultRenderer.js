@@ -1,9 +1,17 @@
-const chalk = require("chalk");
+import chalk from "chalk";
+const reset = chalk.reset;
+const green = chalk.green;
+const black = chalk.black;
+const cyan = chalk.cyan;
+const bgGreen = chalk.bgGreen;
+const grey = chalk.gray;
+const blue = chalk.blue;
+const whiteBright = chalk.whiteBright;
 
 const newLine = /\r?\n/g;
 const spaces = /\s+/g;
 
-const breakLines = (text, max) => {
+function breakLines(text, max) {
 	if (text.length < max) {
 		return [text];
 	}
@@ -18,7 +26,7 @@ const breakLines = (text, max) => {
 		text.substr(0, breakpoint.index),
 		...breakLines(text.substr(breakpoint.length + breakpoint.index), max),
 	];
-};
+}
 
 const defaultBorders = ["╭", "╮", "∠", "╯", "│", "─"];
 const doubleBorders = ["╔", "╗", "╚", "╝", "║", "═"];
@@ -42,8 +50,8 @@ const chatBubble = (
 		borders = defaultBorders,
 		aling = alignLeft,
 		minWidth = 0,
-		borderColor = chalk.reset,
-		textColor = chalk.reset,
+		borderColor = reset,
+		textColor = reset,
 	} = {},
 ) => {
 	const [tl, tr, bl, br, v, h] = borders;
@@ -65,7 +73,7 @@ const chatBubble = (
 	return [borderColor(top), ...linesPadding, borderColor(bottom)].join("\n");
 };
 
-const renderLiterals = (text) => chatBubble(text, { borderColor: chalk.green });
+const renderLiterals = (text) => chatBubble(text, { borderColor: green });
 
 const sayIcons = {
 	Image: "🌻",
@@ -80,11 +88,11 @@ const renderUrl = (url, type) =>
 		borders: emptyBorders,
 		aling: center,
 		minWidth: 15,
-		textColor: chalk.black.bgWhiteBright,
-		borderColor: chalk.black.bgWhiteBright,
+		textColor: black.bgWhiteBright,
+		borderColor: black.bgWhiteBright,
 	}) +
 	"\n" +
-	chalk.cyan.bold.italic.underline(url) +
+	cyan.bold.italic.underline(url) +
 	"\n";
 
 const optionIcons = {
@@ -100,7 +108,7 @@ const renderButtons = (message, options) =>
 		(message ? message + "\n\n" : "") +
 			options.map((o) => `[${optionIcons[o.itemType]} ${o.value}]`).join("\n"),
 		{
-			borderColor: chalk.cyan,
+			borderColor: cyan,
 			borders: boxedBorders,
 		},
 	);
@@ -133,11 +141,11 @@ const renderGoToRule = (ruleName) =>
 		: "\n\n" +
 			chatBubble(`🤖  go to rule '${ruleName}'`, {
 				borders: dashedBorder,
-				borderColor: chalk.bgGreen,
-				textColor: chalk.bgGreen.black,
+				borderColor: bgGreen,
+				textColor: bgGreen.black,
 			});
 
-renderChangeVars = (newVars, currentVars) => {
+function renderChangeVars(newVars, currentVars) {
 	const keys = Object.keys(newVars);
 	if (keys.length === 0) return "";
 	const changes = keys
@@ -147,16 +155,16 @@ renderChangeVars = (newVars, currentVars) => {
 			if (oldValue === newValue) return "";
 			const oldValueStr =
 				oldValue == null
-					? chalk.grey.italic.strikethrough("null")
-					: chalk.grey.italic(JSON.stringify(oldValue.substr(0, 20)));
+					? grey.italic.strikethrough("null")
+					: grey.italic(JSON.stringify(oldValue.substr(0, 20)));
 			const newValueStr =
 				newValue == null
-					? chalk.blue.italic("null")
-					: chalk.green(JSON.stringify(newValue.substr(0, 60)));
+					? blue.italic("null")
+					: green(JSON.stringify(newValue.substr(0, 60)));
 			return (
-				chalk.whiteBright(`$\{${varname}\} = `) +
+				whiteBright(`$\{${varname}\} = `) +
 				oldValueStr +
-				chalk.cyan(" ➡️ ") +
+				cyan(" ➡️ ") +
 				newValueStr
 			);
 		})
@@ -164,11 +172,14 @@ renderChangeVars = (newVars, currentVars) => {
 		.join("\n");
 
 	return "\n" + changes;
-};
+}
 
-const resolveRenderer = ({ user, say, gotoRuleName }, context) =>
-	renderSay(say) +
-	renderGoToRule(gotoRuleName) +
-	renderChangeVars(user, context.userData.variables);
+function resolveRenderer({ user, say, gotoRuleName }, context) {
+	return (
+		renderSay(say) +
+		renderGoToRule(gotoRuleName) +
+		renderChangeVars(user, context.userData.variables)
+	);
+}
 
-module.exports = resolveRenderer;
+export default resolveRenderer;

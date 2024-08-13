@@ -1,67 +1,67 @@
-const https = require("./httpPromise");
+import https from "./httpPromise.js";
 
-const baseUrl = "https://go.botmaker.com";
+const BASE_URL = "https://go.botmaker.com";
 
-exports.getAllCas = async (token) => {
+export async function getAllCas(token) {
 	const headers = {
 		Accept: "application/json",
 		"Content-Type": "application/x-www-form-urlencoded",
 		"access-token": token,
 	};
-	return await https(`${baseUrl}/api/v1.0/clientAction`, { headers });
-};
+	return await https(`${BASE_URL}/api/v1.0/clientAction`, { headers });
+}
 
-exports.getCa = async (token, caId) => {
+export async function getCa(token, caId) {
 	const headers = {
 		Accept: "application/json",
 		"Content-Type": "application/x-www-form-urlencoded",
 		"access-token": token,
 	};
-	return await https(`${baseUrl}/api/v1.0/clientAction/${caId}`, { headers });
-};
+	return await https(`${BASE_URL}/api/v1.0/clientAction/${caId}`, { headers });
+}
 
-exports.createCa = async (token, newCa) => {
+export async function createCa(token, newCa) {
 	const headers = {
 		Accept: "application/json",
 		"Content-Type": "application/json",
 		"access-token": token,
 	};
 	return await https(
-		`${baseUrl}/api/v1.0/clientAction/`,
+		`${BASE_URL}/api/v1.0/clientAction/`,
 		{ headers, method: "POST" },
 		JSON.stringify(newCa),
 	);
-};
+}
 
-exports.updateCas = async (token, toUpdate) => {
+export async function updateCas(token, toUpdate) {
 	const headers = {
 		Accept: "application/json",
 		"Content-Type": "application/json",
 		"access-token": token,
 	};
 	return await https(
-		`${baseUrl}/api/v1.0/clientAction/multiple`,
+		`${BASE_URL}/api/v1.0/clientAction/multiple`,
 		{ headers, method: "PUT" },
 		JSON.stringify(toUpdate),
 	);
-};
+}
 
-exports.getCustomerContext = async (token, customerId = "rnd") => {
+export async function getCustomerContext(token, customerId = "rnd") {
 	const headers = {
 		"access-token": token,
 	};
-	return await https(`${baseUrl}/api/v1.0/customer/${customerId}/context`, {
+	return await https(`${BASE_URL}/api/v1.0/customer/${customerId}/context`, {
 		headers,
 	});
-};
+}
 
-exports.publishCa = async (token, caId) => {
+export async function publishCa(token, caId) {
 	const headers = {
 		Accept: "application/json",
 		"access-token": token,
 	};
-	return await https(`${baseUrl}/api/v1.0/clientAction/${caId}/publish`, {
+	return await https(`${BASE_URL}/api/v1.0/clientAction/${caId}/publish`, {
 		headers,
 		method: "POST",
 	});
-};
+}

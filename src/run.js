@@ -1,20 +1,28 @@
-const readline = require("readline");
-const fs = require("fs");
-const rp = require("request-promise");
-const util = require("util");
-const caRunner = require("./caRunner");
-const path = require("path");
-const resolveRenderer = require("./resultRenderer");
-const chalk = require("chalk");
-const getWorkspacePath = require("./getWorkspacePath");
-const { getBmc } = require("./bmcConfig");
-const express = require("express");
-const { getCaByNameOrPath } = require("./getStatus");
-const caEndpointRunner = require("./caEndpointRunner");
+import { createInterface } from "readline";
+import {
+	readFile as _readFile,
+	writeFile as _writeFile,
+	exists as _exists,
+} from "fs";
+import rp from "request-promise";
+import { promisify } from "util";
+import { caRunner } from "./caRunner.js";
+import { join } from "path";
+import resolveRenderer from "./resultRenderer.js";
+import chalk from "chalk";
+import getWorkspacePath from "./getWorkspacePath.js";
+import { getBmc } from "./bmcConfig.js";
+import express, { urlencoded, json } from "express";
+import { getCaByNameOrPath } from "./getStatus.js";
+import caEndpointRunner from "./caEndpointRunner.js";
 
-const readFile = util.promisify(fs.readFile);
-const writeFile = util.promisify(fs.writeFile);
-const exists = util.promisify(fs.exists);
+const yellow = chalk.yellow;
+const green = chalk.green;
+const red = chalk.red;
+
+const readFile = promisify(_readFile);
+const writeFile = promisify(_writeFile);
+const exists = promisify(_exists);
 
 const doubleArrayToObject = (array) => {
 	const obj = {};
@@ -27,11 +35,11 @@ const doubleArrayToObject = (array) => {
 const require_core_action_pattern =
 	/require\((?:(?:'([a-zA-Z0-9_-]*))'|(?:"([a-zA-Z0-9_-]*)"))\)/g;
 
-const getCodeAnHelpers = async (wpPath, cas, ca) => {
-	const filePath = path.join(wpPath, "src", ca.filename);
+async function getCodeAnHelpers(wpPath, cas, ca) {
+	const filePath = join(wpPath, "src", ca.filename);
 	const helpers = {};
 
-	let code = await readFile(filePath, "utf8");
+	const code = await readFile(filePath, "utf8");
 	let match;
 
 	while ((match = require_core_action_pattern.exec(code)) != null) {
@@ -39,9 +47,9 @@ const getCodeAnHelpers = async (wpPath, cas, ca) => {
 		if (!req) continue;
 		const posibleReqFile =
 			(cas.find((c) => c.name === req) || {}).filename || req + ".js";
-		const posibleUtils = path.join(wpPath, "src", posibleReqFile);
+		const posibleUtils = join(wpPath, "src", posibleReqFile);
 		if (await exists(posibleUtils)) {
-			let helper = await readFile(posibleUtils, "utf8");
+			const helper = await readFile(posibleUtils, "utf8");
 			const parsedHelper =
 				"({" +
 				helper.replace(/function /, "").replace(/function /g, ",") +
@@ -51,30 +59,28 @@ const getCodeAnHelpers = async (wpPath, cas, ca) => {
 		}
 	}
 	return { code, helpers, filePath };
-};
+}
 
-const runEndpointCa = async (wpPath, token, cas, ca, port) => {
+async function runEndpointCa(wpPath, token, cas, ca, port) {
 	const app = express();
-	app.use(express.urlencoded({ extended: true }));
-	app.use(express.json());
+	app.use(urlencoded({ extended: true }));
+	app.use(json());
 	// app.use(express.raw());
 	// app.use(express.text());
-	const rl = readline.createInterface({
+	const rl = createInterface({
 		input: process.stdin,
 		output: process.stdout,
 	});
 
 	app.use((req, res, next) => {
 		const start = new Date().getTime();
-		console.log(chalk.yellow(` Req [${req.method}] ${req.path}`));
+		console.log(yellow(` Req [${req.method}] ${req.path}`));
 		res.on("finish", () => {
 			const end = new Date().getTime();
 			if (res.statusCode >= 200 && res.statusCode < 300) {
-				console.log(
-					chalk.green(` Res [${res.statusCode}] on ${end - start}ms`),
-				);
+				console.log(green(` Res [${res.statusCode}] on ${end - start}ms`));
 			} else {
-				console.log(chalk.red(` Res [${res.statusCode}] on ${end - start}ms`));
+				console.log(red(` Res [${res.statusCode}] on ${end - start}ms`));
 			}
 		});
 		next();
@@ -86,9 +92,9 @@ const runEndpointCa = async (wpPath, token, cas, ca, port) => {
 				console.log("Calling service...");
 				try {
 					const ret = await rp({ uri: `http://localhost:${port}` });
-					console.log(chalk.green(ret));
+					console.log(green(ret));
 				} catch (err) {
-					console.error(chalk.red(err.message));
+					console.error(red(err.message));
 				}
 				return runTest();
 			},
@@ -100,20 +106,20 @@ const runEndpointCa = async (wpPath, token, cas, ca, port) => {
 	});
 
 	app.listen(port, () => {
-		console.log(chalk.green(`Listening in http://localhost:${port}`));
+		console.log(green(`Listening in http://localhost:${port}`));
 		console.log("Press Ctrl + C to stop the server.");
 		runTest();
 	});
 
-	rl.on("close", function () {
+	rl.on("close", () => {
 		console.log("\nBYE BYE !!!");
 		process.exit(0);
 	});
-};
+}
 
-const runUserCa = async (wpPath, token, cas, ca, vars, params, volatile) => {
+async function runUserCa(wpPath, token, cas, ca, vars, params, volatile) {
 	const { code, helpers, filePath } = await getCodeAnHelpers(wpPath, cas, ca);
-	const contextJson = await readFile(path.join(wpPath, "context.json"), "utf8");
+	const contextJson = await readFile(join(wpPath, "context.json"), "utf8");
 	const context = JSON.parse(contextJson);
 	const commandVars = doubleArrayToObject(vars);
 	const commandParameters = doubleArrayToObject(params);
@@ -136,23 +142,21 @@ const runUserCa = async (wpPath, token, cas, ca, vars, params, volatile) => {
 		if (result.error && result.stack) {
 			const line = result.stack.split("\n")[1] || "";
 			const found = line.matchAll(/\<anonymous\>(:\d+:\d+)/g).next();
-			console.error(chalk.red(` ❌ Fail in ${endTime}ms`));
+			console.error(red(` ❌ Fail in ${endTime}ms`));
 			if (found.value) {
 				console.error(
-					chalk.red(
-						`${result.stack.split("\n")[0]} at ${file}${found.value[1]}`,
-					),
+					red(`${result.stack.split("\n")[0]} at ${file}${found.value[1]}`),
 				);
 			} else {
-				console.error(chalk.red(result.stack));
+				console.error(red(result.stack));
 			}
 		} else if (result.error) {
-			console.error(chalk.red(` ❌ Fail in ${endTime}ms`));
-			console.error(chalk.red(result.error));
+			console.error(red(` ❌ Fail in ${endTime}ms`));
+			console.error(red(result.error));
 		} else {
 			const resultRendered = resolveRenderer(result.resultState, context);
 			console.log(resultRendered);
-			console.log(chalk.green(` ✓ Success in ${endTime}ms`));
+			console.log(green(` ✓ Success in ${endTime}ms`));
 			if (!volatile) {
 				const newContext = {
 					...context,
@@ -165,7 +169,7 @@ const runUserCa = async (wpPath, token, cas, ca, vars, params, volatile) => {
 					},
 				};
 				await writeFile(
-					path.join(wpPath, "context.json"),
+					join(wpPath, "context.json"),
 					JSON.stringify(newContext, null, 4),
 					"utf-8",
 				);
@@ -174,13 +178,14 @@ const runUserCa = async (wpPath, token, cas, ca, vars, params, volatile) => {
 		}
 	}
 	process.exit(0);
-};
+}
 
-const run = async (
+async function run(
 	pwd,
 	file,
 	{ vars, params, volatile, endpoint, port = 7070 },
-) => {
+) {
+	console.log("running!");
 	const wpPath = await getWorkspacePath(pwd);
 	const { token, cas } = await getBmc(wpPath);
 	const ca = await getCaByNameOrPath(wpPath, cas, file);
@@ -192,6 +197,6 @@ const run = async (
 	} else {
 		throw new Error(`'${type}' invalid client action type.`);
 	}
-};
+}
 
-module.exports = run;
+export default run;
