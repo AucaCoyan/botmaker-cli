@@ -1,4 +1,4 @@
-import { request } from "https";
+import { request } from "node:https";
 
 export default (url, urlOptions, data) => {
 	return new Promise((resolve, reject) => {
@@ -16,7 +16,7 @@ export default (url, urlOptions, data) => {
 					});
 				} else {
 					reject(
-						"Request failed. status: " + res.statusCode + ", body: " + body,
+						`Request failed. status: ${res.statusCode}, body: ${body}`,
 					);
 				}
 			});

@@ -8,8 +8,8 @@ const green = chalk.green;
 const gray = chalk.gray;
 const italic = chalk.italic;
 
-const ENDPOINT_TAG = `${magenta(`En`)}:`;
-const USER_TAG = `${cyan(`Us`)}:`;
+const ENDPOINT_TAG = `${magenta("En")}:`;
+const USER_TAG = `${cyan("Us")}:`;
 const getCodeActionTypeTag = (ca) => {
 	if (ca.type === "ENDPOINT") {
 		return ENDPOINT_TAG;

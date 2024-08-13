@@ -106,7 +106,7 @@ const optionIcons = {
 const renderButtons = (message, options) =>
 	chatBubble(
 		(message ? message + "\n\n" : "") +
-			options.map((o) => `[${optionIcons[o.itemType]} ${o.value}]`).join("\n"),
+		options.map((o) => `[${optionIcons[o.itemType]} ${o.value}]`).join("\n"),
 		{
 			borderColor: cyan,
 			borders: boxedBorders,
@@ -125,25 +125,25 @@ const renderSay = (say) =>
 				MESSAGE = null,
 				OPTIONS = [],
 			}) => [
-				...literals.map(renderLiterals),
-				...(MESSAGE ? [renderButtons(MESSAGE, OPTIONS)] : []),
-				...AUDIOS_URLS.map((url) => renderUrl(url, "Audio")),
-				...FILES_URLS.map((url) => renderUrl(url, "File")),
-				...IMAGES_URLS.map((url) => renderUrl(url, "Image")),
-				...VIDEOS_URLS.map((url) => renderUrl(url, "Video")),
-			],
+					...literals.map(renderLiterals),
+					...(MESSAGE ? [renderButtons(MESSAGE, OPTIONS)] : []),
+					...AUDIOS_URLS.map((url) => renderUrl(url, "Audio")),
+					...FILES_URLS.map((url) => renderUrl(url, "File")),
+					...IMAGES_URLS.map((url) => renderUrl(url, "Image")),
+					...VIDEOS_URLS.map((url) => renderUrl(url, "Video")),
+				],
 		)
 		.join("\n");
 
-const renderGoToRule = (ruleName) =>
-	!ruleName
+function renderGoToRule(ruleName) {
+	return !ruleName
 		? ""
-		: "\n\n" +
-			chatBubble(`🤖  go to rule '${ruleName}'`, {
-				borders: dashedBorder,
-				borderColor: bgGreen,
-				textColor: bgGreen.black,
-			});
+		: `\n\n${chatBubble(`🤖  go to rule '${ruleName}'`, {
+			borders: dashedBorder,
+			borderColor: bgGreen,
+			textColor: bgGreen.black,
+		})}`;
+}
 
 function renderChangeVars(newVars, currentVars) {
 	const keys = Object.keys(newVars);
@@ -171,7 +171,7 @@ function renderChangeVars(newVars, currentVars) {
 		.filter(Boolean)
 		.join("\n");
 
-	return "\n" + changes;
+	return `\n${changes}`;
 }
 
 function resolveRenderer({ user, say, gotoRuleName }, context) {

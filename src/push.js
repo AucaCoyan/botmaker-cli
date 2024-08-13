@@ -15,16 +15,16 @@ import publish from "./publish.js";
 
 const maxLength = 100000;
 
-const checkClientActionLength = (text, caName) => {
+function checkClientActionLength(text, caName) {
 	if (text.length > maxLength) {
 		console.log(
 			red(
-				`The code action ${caName} is too big. The maximum size is 100000 characters.`,
-			),
+				`The code action ${caName} is too big. The maximum size is 100000 characters.`
+			)
 		);
 		throw new Error(`Error trying to push changes in ${caName}`);
 	}
-};
+}
 
 function getPushChanges(status, changes) {
 	const hasLocalChanges = changes.includes(ChangeType.LOCAL_CHANGES);
@@ -38,26 +38,25 @@ function getPushChanges(status, changes) {
 	};
 }
 
-const applyPush = async (token, changes) => {
+async function applyPush(token, changes) {
 	await updateCas(token, changes);
-};
+}
 
-const hasIncomingChanges = (changes) => {
+function hasIncomingChanges(changes) {
 	return changes.some(
-		(c) =>
-			c === ChangeType.INCOMING_CHANGES ||
+		(c) => c === ChangeType.INCOMING_CHANGES ||
 			c === ChangeType.REMOVE_REMOTE ||
 			c === ChangeType.NEW_CA ||
 			c === ChangeType.RENAMED ||
-			c === ChangeType.TYPE_CHANGED,
+			c === ChangeType.TYPE_CHANGED
 	);
-};
+}
 
-const singlePush = async (pwd, caName) => {
+async function singlePush(pwd, caName) {
 	const wpPath = await getWorkspacePath(pwd);
 	const { changes, status } = await getSingleStatusChanges(
 		pwd,
-		caName,
+		caName
 	);
 	if (hasIncomingChanges(changes)) {
 		throw new Error("There is incoming changes. You must make a pull first.");
@@ -70,15 +69,14 @@ const singlePush = async (pwd, caName) => {
 	checkClientActionLength(pushChanges.unPublishedCode, caName);
 	const { token, cas } = await getBmc(wpPath);
 	await applyPush(token, [pushChanges]);
-	const newCas = cas.map((ca) =>
-		pushChanges.id === ca.id
-			? { ...ca, unPublishedCode: pushChanges.unPublishedCode }
-			: ca,
+	const newCas = cas.map((ca) => pushChanges.id === ca.id
+		? { ...ca, unPublishedCode: pushChanges.unPublishedCode }
+		: ca
 	);
 	await saveBmc(wpPath, token, newCas);
-};
+}
 
-const completePush = async (pwd) => {
+async function completePush(pwd) {
 	const wpPath = await getWorkspacePath(pwd);
 	const { token, cas } = await getBmc(wpPath);
 	const changesGenerator = getStatusChanges(pwd);
@@ -102,7 +100,7 @@ const completePush = async (pwd) => {
 	toPush.forEach((update) => {
 		const ca = cas.find((c) => c.id === update.id);
 		console.log(
-			yellow(` * ${italic(ca.filename)} `) + grey(ca.name),
+			yellow(` * ${italic(ca.filename)} `) + grey(ca.name)
 		);
 	});
 	await applyPush(token, toPush);
@@ -111,17 +109,17 @@ const completePush = async (pwd) => {
 		return updated ? { ...ca, unPublishedCode: updated.unPublishedCode } : ca;
 	});
 	await saveBmc(wpPath, token, newCas);
-};
+}
 
-const push = async (pwd, caName, forPublish) => {
+async function push(pwd, caName, forPublish) {
 	if (caName) {
 		await singlePush(pwd, caName);
 	} else {
 		await completePush(pwd);
 	}
-	if (forPublish == "TRUE") {
+	if (forPublish === "TRUE") {
 		await publish(pwd, caName);
 	}
-};
+}
 
 export default push;

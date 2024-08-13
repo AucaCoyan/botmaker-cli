@@ -99,8 +99,8 @@ const showChanges = (compare) => {
 	const pad = maxLines.toString().length;
 	const withPad = (text) => text.toString().padStart(pad);
 	const diferences = diffLines(f1, f2);
-	let aLineCount = 1,
-		bLineCount = 1;
+	let aLineCount = 1;
+	let bLineCount = 1;
 	diferences.forEach((p, pi) => {
 		const lines = p.value.split(/\r?\n/);
 		const firstPart = pi === 0;

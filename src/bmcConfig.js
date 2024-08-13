@@ -1,6 +1,6 @@
-import { join } from "path";
-import { promisify } from "util";
-import { readFile as _readFile, writeFile as _writeFile } from "fs";
+import { join } from "node:path";
+import { promisify } from "node:util";
+import { readFile as _readFile, writeFile as _writeFile } from "node:fs";
 
 const readFile = promisify(_readFile);
 const writeFile = promisify(_writeFile);

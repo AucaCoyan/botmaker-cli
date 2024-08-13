@@ -31,12 +31,11 @@ const getName = async (folder, basename, extension, num) => {
 	const isTaken = await exists(finalPath);
 	if (isTaken && num > 100) {
 		throw new Error(`could not found a space for '${basename}'`);
-	} else if (isTaken) {
+	} if (isTaken) {
 		const nextNum = num !== undefined ? num + 1 : 0;
 		return getName(folder, basename, extension, nextNum);
-	} else {
-		return finalName;
 	}
+	return finalName;
 };
 
 async function importWorkspace(pwd, apiToken) {
@@ -61,8 +60,7 @@ async function importWorkspace(pwd, apiToken) {
 			return await getCustomerContext(apiToken);
 		} catch (e) {
 			console.error(
-				"Cound not found a context. Please check if exist some chat for the business " +
-				businessId
+				`Cound not found a context. Please check if exist some chat for the business ${businessId}`
 			);
 			throw e;
 		}

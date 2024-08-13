@@ -13,16 +13,15 @@ import { formatName, getName } from "./importWorkspace.js";
 const green = chalk.green;
 const renameFile = promisify(_rename);
 
-const hasIncomingChanges = (changes) => {
+function hasIncomingChanges(changes) {
 	return changes.some(
-		(c) =>
-			c === ChangeType.INCOMING_CHANGES ||
+		(c) => c === ChangeType.INCOMING_CHANGES ||
 			c === ChangeType.REMOVE_REMOTE ||
 			c === ChangeType.NEW_CA ||
 			c === ChangeType.RENAMED ||
-			c === ChangeType.TYPE_CHANGED,
+			c === ChangeType.TYPE_CHANGED
 	);
-};
+}
 
 async function rename(pwd, caName, newName) {
 	const wpPath = await getWorkspacePath(pwd);

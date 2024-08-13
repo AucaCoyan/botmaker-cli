@@ -59,12 +59,12 @@ main()
   });
 `;
 
-const createFileAndStatus = async (wpPath, ca, openVsCode) => {
+async function createFileAndStatus(wpPath, ca, openVsCode) {
   const baseName = importWorkspace.formatName(ca.name);
   const newFileName = await getName(
     join(wpPath, "src"),
     baseName,
-    "js",
+    "js"
   );
 
   const filePath = join(wpPath, "src", newFileName);
@@ -77,9 +77,9 @@ const createFileAndStatus = async (wpPath, ca, openVsCode) => {
     ...ca,
     filename: newFileName,
   };
-};
+}
 
-const newCa = async (pwd, caName, type, openVsCode = false) => {
+async function newCa(pwd, caName, type, openVsCode = false) {
   const newCa = {
     publishedCode: type === "USER" ? baseCa : baseEndPointCa,
     name: caName,
@@ -92,6 +92,6 @@ const newCa = async (pwd, caName, type, openVsCode = false) => {
   const status = await createFileAndStatus(wpPath, ca, openVsCode);
   const newCas = cas.concat(status);
   await saveBmc(wpPath, token, newCas);
-};
+}
 
 export default newCa;

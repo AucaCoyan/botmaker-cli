@@ -20,15 +20,15 @@ const hasIncomingChanges = (changes) => {
 	);
 };
 
-const hasLocalChanges = (changes) => {
+function hasLocalChanges(changes) {
 	return changes.some((c) => c === ChangeType.LOCAL_CHANGES);
-};
+}
 
-const isUnpublish = (changes) => {
+function isUnpublish(changes) {
 	return changes.some((c) => c === ChangeType.UNPUBLISHED);
-};
+}
 
-const publish = async (pwd, caName) => {
+async function publish(pwd, caName) {
 	const wpPath = await getWorkspacePath(pwd);
 	const { changes, status } = await getSingleStatusChanges(pwd, caName);
 
@@ -45,12 +45,11 @@ const publish = async (pwd, caName) => {
 
 	const { token, cas } = await getBmc(wpPath);
 	await publishCa(token, status.id);
-	const newCas = cas.map((ca) =>
-		status.id === ca.id
-			? { ...ca, publishedCode: ca.unPublishedCode, unPublishedCode: null }
-			: ca,
+	const newCas = cas.map((ca) => status.id === ca.id
+		? { ...ca, publishedCode: ca.unPublishedCode, unPublishedCode: null }
+		: ca
 	);
 	await saveBmc(wpPath, token, newCas);
-};
+}
 
 export default publish;

@@ -58,21 +58,21 @@ function ___runMain(bmContext, code, filename, helpers) {
 	runInNewContext(code, mainContext, { filename, timeout: 90 * 60 * 1000 });
 }
 
-export default (req, res, token, code, helpers, filePath) => {
+export default function caEndpointRunner(req, res, token, code, helpers, filePath) {
 	const __redisLib__ = require("redis");
 	promisifyAll(__redisLib__.RedisClient.prototype);
 	promisifyAll(__redisLib__.Multi.prototype);
 
-	const __parceStackTrace = (error) => {
+	function __parceStackTrace(error) {
 		if (error.stack) {
 			return __parceStackTrace(error.stack);
 		}
 		const message = error.split(/\r?\n/g)[0];
 		const stack = [];
 		const regex = /\s+at (.+?(?= \()) \((.+?)(?=[:\)]):?(\d*):?(\d*)\)/gm;
-		let match;
+		const match = regex.exec(error);
 
-		while ((match = regex.exec(error)) != null) {
+		while ((match) != null) {
 			const [_, caller, source, line, column] = match;
 			stack.push({ caller, source, line, column });
 		}
@@ -80,7 +80,7 @@ export default (req, res, token, code, helpers, filePath) => {
 			message,
 			stack,
 		};
-	};
+	}
 	try {
 		const consoleColor = {
 			log: chalk.green,
@@ -90,19 +90,19 @@ export default (req, res, token, code, helpers, filePath) => {
 		const bmconsole = {};
 		["log", "warn", "error"].forEach(
 			(method) =>
-				(bmconsole[method] = (...p) => {
-					const { caller, line } =
-						__parceStackTrace(new Error()).stack[1] || {};
-					console[method](
-						consoleColor[method](
-							chalk.bold(`${caller === "eval" ? "main" : caller}:${line}~>`),
-							...p,
-						),
-					);
-				}),
+			(bmconsole[method] = (...p) => {
+				const { caller, line } =
+					__parceStackTrace(new Error()).stack[1] || {};
+				console[method](
+					consoleColor[method](
+						chalk.bold(`${caller === "eval" ? "main" : caller}:${line}~>`),
+						...p,
+					),
+				);
+			}),
 		);
 
-		const connectRedis = () => {
+		function connectRedis() {
 			const redis = __redisLib__.createClient(6379, "redis.botmaker.com", {
 				password: token,
 				socket_keepalive: false,
@@ -117,7 +117,7 @@ export default (req, res, token, code, helpers, filePath) => {
 			});
 			// redis.unref(); // allowing the program to exit once no more commands are pending
 			return redis;
-		};
+		}
 
 		req.connectRedis = connectRedis;
 		___runMain(

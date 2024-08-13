@@ -1,6 +1,6 @@
-import { createContext, runInNewContext } from "vm";
+import { createContext, runInNewContext } from "node:vm";
 import rp from "request-promise";
-import fs from "fs";
+import fs from "node:fs";
 import lodash from "lodash";
 const _ = lodash;
 import moment from "moment";
@@ -59,7 +59,6 @@ function ___runMain(bmContext, code, filename, helpers) {
 }
 
 function caRunner(code, context, helpers, fulfill, token, filename) {
-	const chalk = require("chalk");
 	const __redisLib__ = require("redis");
 	promisifyAll(__redisLib__.RedisClient.prototype);
 	promisifyAll(__redisLib__.Multi.prototype);

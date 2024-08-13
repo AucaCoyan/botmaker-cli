@@ -21,7 +21,7 @@ const green = chalk.green;
 const writeFile = promisify(_writeFile);
 const rm = promisify(unlink);
 
-const makeChanges = async (wpPath, cas, status, changes) => {
+async function makeChanges(wpPath, cas, status, changes) {
 	const notAdded = changes.includes(ChangeType.NOT_ADDED);
 	const hasLocalChanges = changes.includes(ChangeType.LOCAL_CHANGES);
 	const hasIncomingChanges = changes.includes(ChangeType.INCOMING_CHANGES);
@@ -35,16 +35,16 @@ const makeChanges = async (wpPath, cas, status, changes) => {
 	if (removeLocal && hasIncomingChanges) {
 		console.log(
 			bgRed(
-				`WARNING: ${status.name} has incoming changes but was deleted locally`,
-			),
+				`WARNING: ${status.name} has incoming changes but was deleted locally`
+			)
 		);
 		return cas;
 	}
 	if (hasLocalChanges && removeRemote) {
 		console.log(
 			bgRed(
-				`WARNING: ${join(wpPath, "src", status.fn)} has local changes but was deleted remotly.`,
-			),
+				`WARNING: ${join(wpPath, "src", status.fn)} has local changes but was deleted remotly.`
+			)
 		);
 		return cas;
 	}
@@ -61,13 +61,13 @@ const makeChanges = async (wpPath, cas, status, changes) => {
 		const { conflict, result } = getMerge(local, original, remote);
 		if (conflict) {
 			console.log(
-				bgRed(`WARNING: ${join(wpPath, "src", status.fn)} has merge conflicts`),
+				bgRed(`WARNING: ${join(wpPath, "src", status.fn)} has merge conflicts`)
 			);
 		} else {
 			console.log(
 				yellow(
-					`WARNING: ${join(wpPath, "src", status.fn)} was merged automatically`,
-				),
+					`WARNING: ${join(wpPath, "src", status.fn)} was merged automatically`
+				)
 			);
 		}
 		await writeFile(join(wpPath, "src", status.fn), result, "UTF-8");
@@ -104,27 +104,26 @@ const makeChanges = async (wpPath, cas, status, changes) => {
 		});
 	}
 
-	return cas.map((ca) =>
-		ca.id !== status.id
-			? ca
-			: {
-				publishedCode: status.P,
-				unPublishedCode: status.U,
-				name: status.N,
-				type: status.T,
-				id: status.id,
-				filename: status.fn,
-			},
+	return cas.map((ca) => ca.id !== status.id
+		? ca
+		: {
+			publishedCode: status.P,
+			unPublishedCode: status.U,
+			name: status.N,
+			type: status.T,
+			id: status.id,
+			filename: status.fn,
+		}
 	);
-};
+}
 
-const hasMerge = (changes) => {
+function hasMerge(changes) {
 	const hasLocalChanges = changes.includes(ChangeType.LOCAL_CHANGES);
 	const hasIncomingChanges = changes.includes(ChangeType.INCOMING_CHANGES);
 	return hasLocalChanges && hasIncomingChanges;
-};
+}
 
-const singlePull = async (pwd, caName) => {
+async function singlePull(pwd, caName) {
 	const wpPath = await getWorkspacePath(pwd);
 	const { token, cas } = await getBmc(wpPath);
 	const { changes, status } = await getSingleStatusChanges(pwd, caName);
@@ -136,12 +135,12 @@ const singlePull = async (pwd, caName) => {
 	await writeFile(
 		join(wpPath, ".bmc"),
 		JSON.stringify({ token, cas: newCas }),
-		"UTF-8",
+		"UTF-8"
 	);
 	return hasMerge(changes);
-};
+}
 
-const completePull = async (pwd) => {
+async function completePull(pwd) {
 	const wpPath = await getWorkspacePath(pwd);
 	const { token, cas } = await getBmc(wpPath);
 	const changesGenerator = getStatusChanges(pwd);
@@ -159,10 +158,10 @@ const completePull = async (pwd) => {
 	await writeFile(
 		join(wpPath, ".bmc"),
 		JSON.stringify({ token, cas: newCas }),
-		"UTF-8",
+		"UTF-8"
 	);
 	return withMerges;
-};
+}
 
 async function pull(pwd, caName) {
 	if (caName) {

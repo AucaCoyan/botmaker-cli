@@ -1,13 +1,13 @@
-import { createInterface } from "readline";
+import { createInterface } from "node:readline";
 import {
 	readFile as _readFile,
 	writeFile as _writeFile,
 	exists as _exists,
-} from "fs";
+} from "node:fs";
 import rp from "request-promise";
-import { promisify } from "util";
+import { promisify } from "node:util";
 import { caRunner } from "./caRunner.js";
-import { join } from "path";
+import { join } from "node:path";
 import resolveRenderer from "./resultRenderer.js";
 import chalk from "chalk";
 import getWorkspacePath from "./getWorkspacePath.js";
@@ -40,21 +40,18 @@ async function getCodeAnHelpers(wpPath, cas, ca) {
 	const helpers = {};
 
 	const code = await readFile(filePath, "utf8");
-	let match;
+	const match = require_core_action_pattern.exec(code);
 
-	while ((match = require_core_action_pattern.exec(code)) != null) {
+	while ((match) != null) {
 		const req = match[1] || match[2];
 		if (!req) continue;
 		const posibleReqFile =
-			(cas.find((c) => c.name === req) || {}).filename || req + ".js";
+			cas.find((c) => c.name === req)?.filename || `${req}.js`;
 		const posibleUtils = join(wpPath, "src", posibleReqFile);
 		if (await exists(posibleUtils)) {
 			const helper = await readFile(posibleUtils, "utf8");
 			const parsedHelper =
-				"({" +
-				helper.replace(/function /, "").replace(/function /g, ",") +
-				"})\n//# sourceURL=" +
-				posibleUtils;
+				`({${helper.replace(/function /, "").replace(/function /g, ",")}})\n//# sourceURL=${posibleUtils}`;
 			helpers[req] = { code: parsedHelper, source: posibleUtils };
 		}
 	}
