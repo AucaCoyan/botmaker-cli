@@ -1,4 +1,5 @@
 import chalk from "chalk";
+import type { Context } from "./types";
 const reset = chalk.reset;
 const green = chalk.green;
 const black = chalk.black;
@@ -174,7 +175,7 @@ function renderChangeVars(newVars, currentVars) {
 	return `\n${changes}`;
 }
 
-function resolveRenderer({ user, say, gotoRuleName }, context) {
+function resolveRenderer({ user, say, gotoRuleName }, context: Context) {
 	return (
 		renderSay(say) +
 		renderGoToRule(gotoRuleName) +

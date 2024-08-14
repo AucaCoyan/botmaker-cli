@@ -4,6 +4,7 @@ import { getBmc, saveBmc } from "./bmcConfig.js";
 import getWorkspacePath from "./getWorkspacePath.js";
 import { publishCa } from "./bmService.js";
 import chalk from "chalk";
+import type { ClientAction } from "./types.js";
 
 const green = chalk.green;
 
@@ -28,7 +29,7 @@ function isUnpublish(changes) {
 	return changes.some((c) => c === ChangeType.UNPUBLISHED);
 }
 
-async function publish(pwd, caName) {
+async function publish(pwd: string, caName) {
 	const wpPath = await getWorkspacePath(pwd);
 	const { changes, status } = await getSingleStatusChanges(pwd, caName);
 
@@ -45,9 +46,10 @@ async function publish(pwd, caName) {
 
 	const { token, cas } = await getBmc(wpPath);
 	await publishCa(token, status.id);
-	const newCas = cas.map((ca) => status.id === ca.id
-		? { ...ca, publishedCode: ca.unPublishedCode, unPublishedCode: null }
-		: ca
+	const newCas: ClientAction[] = cas.map((ca) =>
+		status.id === ca.id
+			? { ...ca, publishedCode: ca.unPublishedCode, unPublishedCode: null }
+			: ca,
 	);
 	await saveBmc(wpPath, token, newCas);
 }

@@ -60,7 +60,7 @@ function getMerge(local, original, remote) {
 		local.split(/\r?\n/),
 		original.split(/\r?\n/),
 		remote.split(/\r?\n/),
-		{ excludeFalseConflicts: false }
+		{ excludeFalseConflicts: false },
 	);
 	let conflict = false;
 	let lines = [];
@@ -75,7 +75,7 @@ function getMerge(local, original, remote) {
 				item.conflict.a,
 				["======="],
 				item.conflict.b,
-				[">>>>>>>"]
+				[">>>>>>>"],
 			);
 		}
 	}
@@ -161,7 +161,7 @@ const showChanges = (compare) => {
 	});
 };
 
-async function getDiff(pwd, caName, code, vsCode = false) {
+async function getDiff(pwd: string, caName, code, vsCode = false) {
 	const wpPath = await getWorkspacePath(pwd);
 	const { token, cas } = await getBmc(wpPath);
 	const ca = await getStatus.getCaByNameOrPath(wpPath, cas, caName);

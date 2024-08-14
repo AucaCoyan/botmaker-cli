@@ -1,7 +1,7 @@
 import { join } from "node:path";
 import { exists } from "node:fs";
 
-async function getWorkspacePath(pwd) {
+async function getWorkspacePath(pwd: string) {
 	console.log("getting workspace path..");
 	if (exists(join(pwd, ".bmc"))) {
 		return pwd;

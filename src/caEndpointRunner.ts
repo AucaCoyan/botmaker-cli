@@ -58,21 +58,35 @@ function ___runMain(bmContext, code, filename, helpers) {
 	runInNewContext(code, mainContext, { filename, timeout: 90 * 60 * 1000 });
 }
 
-export default function caEndpointRunner(req, res, token, code, helpers, filePath) {
+type Stack = {
+	caller;
+	source;
+	line;
+	column;
+}[];
+
+export default function caEndpointRunner(
+	req,
+	res,
+	token,
+	code,
+	helpers,
+	filePath,
+) {
 	const __redisLib__ = require("redis");
-	promisifyAll(__redisLib__.RedisClient.prototype);
-	promisifyAll(__redisLib__.Multi.prototype);
+	// promisifyAll(__redisLib__.RedisClient.prototype);
+	// promisifyAll(__redisLib__.Multi.prototype);
 
 	function __parceStackTrace(error) {
 		if (error.stack) {
 			return __parceStackTrace(error.stack);
 		}
 		const message = error.split(/\r?\n/g)[0];
-		const stack = [];
+		const stack: Stack = [];
 		const regex = /\s+at (.+?(?= \()) \((.+?)(?=[:\)]):?(\d*):?(\d*)\)/gm;
 		const match = regex.exec(error);
 
-		while ((match) != null) {
+		while (match != null) {
 			const [_, caller, source, line, column] = match;
 			stack.push({ caller, source, line, column });
 		}
@@ -90,16 +104,16 @@ export default function caEndpointRunner(req, res, token, code, helpers, filePat
 		const bmconsole = {};
 		["log", "warn", "error"].forEach(
 			(method) =>
-			(bmconsole[method] = (...p) => {
-				const { caller, line } =
-					__parceStackTrace(new Error()).stack[1] || {};
-				console[method](
-					consoleColor[method](
-						chalk.bold(`${caller === "eval" ? "main" : caller}:${line}~>`),
-						...p,
-					),
-				);
-			}),
+				(bmconsole[method] = (...p) => {
+					const { caller, line } =
+						__parceStackTrace(new Error()).stack[1] || {};
+					console[method](
+						consoleColor[method](
+							chalk.bold(`${caller === "eval" ? "main" : caller}:${line}~>`),
+							...p,
+						),
+					);
+				}),
 		);
 
 		function connectRedis() {
@@ -134,4 +148,4 @@ export default function caEndpointRunner(req, res, token, code, helpers, filePat
 		console.error(__executionErrors__);
 		res.status(500).send(JSON.stringify(__executionErrors__));
 	}
-};
+}

@@ -10,39 +10,42 @@ import {
 import { decode as _decode } from "jsonwebtoken";
 import { getAllCas, getCustomerContext } from "./bmService.js";
 import { copy } from "fs-extra";
+import type { BMCFile, ClientAction, Context } from "./types.js";
 
 const writeFile = promisify(_writeFile);
 const exists = promisify(_exists);
 const mkdir = promisify(_mkdir);
 const copyAll = promisify(copy);
 
-const formatName = (name) =>
-	name
+function formatName(name: string): string {
+	return name
 		.normalize("NFD")
 		.replace(/[\u0300-\u036f]/g, "") // remove acents
 		.replace(/\W+/g, "_") // remplace spaces with underscore
 		.replace(/[\u{0080}-\u{FFFF}]/gu, "") // remove all non ascii chars
 		.toLowerCase();
+}
 
-const getName = async (folder, basename, extension, num) => {
+async function getName(folder, basename: string, extension: string, num?) {
 	const counterPart = num !== undefined ? `_${num}` : "";
 	const finalName = `${basename}${counterPart}.${extension}`;
 	const finalPath = join(folder, finalName);
 	const isTaken = await exists(finalPath);
 	if (isTaken && num > 100) {
 		throw new Error(`could not found a space for '${basename}'`);
-	} if (isTaken) {
+	}
+	if (isTaken) {
 		const nextNum = num !== undefined ? num + 1 : 0;
 		return getName(folder, basename, extension, nextNum);
 	}
 	return finalName;
-};
+}
 
-async function importWorkspace(pwd, apiToken) {
+async function importWorkspace(pwd: string, apiToken) {
 	const decode = _decode(apiToken);
 	if (!decode) {
 		console.error(
-			"bmc: Invalid jwt token. Please generate a api token from https://go.botmaker.com/#/platforms in 'Botmaker API - Credenciales'"
+			"bmc: Invalid jwt token. Please generate a api token from https://go.botmaker.com/#/platforms in 'Botmaker API - Credenciales'",
 		);
 		throw new Error("Invalid jwt token");
 	}
@@ -50,7 +53,7 @@ async function importWorkspace(pwd, apiToken) {
 	const workspacePath = join(pwd, businessId);
 	if (await exists(workspacePath)) {
 		throw new Error(
-			`cannot create directory ‘${join(pwd, businessId)}’: File exists`
+			`cannot create directory ‘${join(pwd, businessId)}’: File exists`,
 		);
 	}
 
@@ -60,12 +63,12 @@ async function importWorkspace(pwd, apiToken) {
 			return await getCustomerContext(apiToken);
 		} catch (e) {
 			console.error(
-				`Cound not found a context. Please check if exist some chat for the business ${businessId}`
+				`Cound not found a context. Please check if exist some chat for the business ${businessId}`,
 			);
 			throw e;
 		}
 	})();
-	const context = JSON.parse(contextReq.body);
+	const context: Context = JSON.parse(contextReq.body);
 
 	console.log("looking for client actions...");
 	const casReq = await (async () => {
@@ -76,7 +79,7 @@ async function importWorkspace(pwd, apiToken) {
 			throw e;
 		}
 	})();
-	const cas = JSON.parse(casReq.body);
+	const cas: ClientAction[] = JSON.parse(casReq.body);
 	console.log("creating workspace...");
 
 	await mkdir(workspacePath);
@@ -86,7 +89,7 @@ async function importWorkspace(pwd, apiToken) {
 	await writeFile(
 		join(workspacePath, "context.json"),
 		JSON.stringify(context, null, 4),
-		"UTF-8"
+		"UTF-8",
 	);
 	await mkdir(join(workspacePath, "src"));
 	const srcFolder = join(workspacePath, "src");
@@ -96,10 +99,10 @@ async function importWorkspace(pwd, apiToken) {
 		await writeFile(
 			join(srcFolder, ca.filename),
 			ca.unPublishedCode || ca.publishedCode,
-			"UTF-8"
+			"UTF-8",
 		);
 	}
-	const bmc = {
+	const bmc: BMCFile = {
 		cas,
 		token: apiToken,
 	};

@@ -13,3 +13,15 @@ export type BMCFile = {
 	token: string,
 	cas: ClientAction[],
 }
+
+export type UserData = {
+	FIRST_NAME: string
+	LAST_NAME: string,
+	variables: any
+}
+
+export type Context = {
+	userData: UserData,
+	params: any
+
+}

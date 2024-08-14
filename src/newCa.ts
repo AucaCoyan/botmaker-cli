@@ -6,8 +6,9 @@ import { exec } from "node:child_process";
 
 import { getBmc, saveBmc } from "./bmcConfig.js";
 import getWorkspacePath from "./getWorkspacePath.js";
-import { getName } from "./importWorkspace.js";
+import { getName, formatName } from "./importWorkspace.js";
 import { createCa } from "./bmService.js";
+import type { ClientAction } from "./types.js";
 
 const green = chalk.green;
 const writeFile = promisify(_writeFile);
@@ -59,17 +60,18 @@ main()
   });
 `;
 
-async function createFileAndStatus(wpPath, ca, openVsCode) {
-  const baseName = importWorkspace.formatName(ca.name);
-  const newFileName = await getName(
-    join(wpPath, "src"),
-    baseName,
-    "js"
-  );
+async function createFileAndStatus(wpPath, ca: ClientAction, openVsCode: boolean) {
+  const baseName = formatName(ca.name);
+  const newFileName = await getName(join(wpPath, "src"), baseName, "js");
 
   const filePath = join(wpPath, "src", newFileName);
-  await writeFile(filePath, ca.publishedCode, "UTF-8");
+  if (ca.publishedCode !== undefined) {
+    await writeFile(filePath, ca.publishedCode, "UTF-8");
+  } else {
+    console.error("PublishedCode property is undefined!");
+  }
   console.log(green(`${filePath} was added`));
+
   if (openVsCode) {
     exec(`code "${filePath}"`);
   }
@@ -79,7 +81,7 @@ async function createFileAndStatus(wpPath, ca, openVsCode) {
   };
 }
 
-async function newCa(pwd, caName, type, openVsCode = false) {
+async function newCa(pwd: string, caName, type, openVsCode = false) {
   const newCa = {
     publishedCode: type === "USER" ? baseCa : baseEndPointCa,
     name: caName,

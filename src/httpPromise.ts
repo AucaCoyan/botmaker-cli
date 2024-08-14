@@ -1,6 +1,6 @@
 import { request } from "node:https";
 
-export default (url, urlOptions, data) => {
+export default (url: string, urlOptions, data) => {
 	return new Promise((resolve, reject) => {
 		const req = request(url, urlOptions, (res) => {
 			res.setEncoding("utf8");
@@ -15,9 +15,7 @@ export default (url, urlOptions, data) => {
 						body: body,
 					});
 				} else {
-					reject(
-						`Request failed. status: ${res.statusCode}, body: ${body}`,
-					);
+					reject(`Request failed. status: ${res.statusCode}, body: ${body}`);
 				}
 			});
 		});

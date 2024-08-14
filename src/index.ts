@@ -11,7 +11,22 @@ import publish from "./publish.js";
 import rename from "./rename.js";
 import listCas from "./listCas.js";
 
-async function main(args) {
+// type Args = {
+// 	customerId,
+// 	caName,
+// 	apiToken,
+// 	b,
+// 	e,
+// 	v: {"":any, "": any}, // vs code
+// 	newName,
+// 	source
+// 	p,
+// 	volatile,
+// 	endpoint,
+// 	port,
+// }
+
+async function main(args: string[]) {
 	const pwd = process.cwd();
 	const arrgs = yargs(args)
 		.scriptName("bmc")
@@ -149,6 +164,6 @@ async function main(args) {
 	}
 }
 
-export default (args) => {
+export default function run_main(args: string[]) {
 	main(args).catch((e) => console.error(`bmc: ${e.message || e}`));
-};
+}

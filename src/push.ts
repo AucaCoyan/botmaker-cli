@@ -1,4 +1,8 @@
-import { ChangeType, getSingleStatusChanges, getStatusChanges } from "./getStatus.js";
+import {
+	ChangeType,
+	getSingleStatusChanges,
+	getStatusChanges,
+} from "./getStatus.js";
 
 import { getBmc, saveBmc } from "./bmcConfig.js";
 import getWorkspacePath from "./getWorkspacePath.js";
@@ -19,8 +23,8 @@ function checkClientActionLength(text, caName) {
 	if (text.length > maxLength) {
 		console.log(
 			red(
-				`The code action ${caName} is too big. The maximum size is 100000 characters.`
-			)
+				`The code action ${caName} is too big. The maximum size is 100000 characters.`,
+			),
 		);
 		throw new Error(`Error trying to push changes in ${caName}`);
 	}
@@ -44,20 +48,18 @@ async function applyPush(token, changes) {
 
 function hasIncomingChanges(changes) {
 	return changes.some(
-		(c) => c === ChangeType.INCOMING_CHANGES ||
+		(c) =>
+			c === ChangeType.INCOMING_CHANGES ||
 			c === ChangeType.REMOVE_REMOTE ||
 			c === ChangeType.NEW_CA ||
 			c === ChangeType.RENAMED ||
-			c === ChangeType.TYPE_CHANGED
+			c === ChangeType.TYPE_CHANGED,
 	);
 }
 
 async function singlePush(pwd, caName) {
 	const wpPath = await getWorkspacePath(pwd);
-	const { changes, status } = await getSingleStatusChanges(
-		pwd,
-		caName
-	);
+	const { changes, status } = await getSingleStatusChanges(pwd, caName);
 	if (hasIncomingChanges(changes)) {
 		throw new Error("There is incoming changes. You must make a pull first.");
 	}
@@ -69,9 +71,10 @@ async function singlePush(pwd, caName) {
 	checkClientActionLength(pushChanges.unPublishedCode, caName);
 	const { token, cas } = await getBmc(wpPath);
 	await applyPush(token, [pushChanges]);
-	const newCas = cas.map((ca) => pushChanges.id === ca.id
-		? { ...ca, unPublishedCode: pushChanges.unPublishedCode }
-		: ca
+	const newCas = cas.map((ca) =>
+		pushChanges.id === ca.id
+			? { ...ca, unPublishedCode: pushChanges.unPublishedCode }
+			: ca,
 	);
 	await saveBmc(wpPath, token, newCas);
 }
@@ -99,9 +102,7 @@ async function completePush(pwd) {
 	console.log(yellow("Uploading changes for:"));
 	toPush.forEach((update) => {
 		const ca = cas.find((c) => c.id === update.id);
-		console.log(
-			yellow(` * ${italic(ca.filename)} `) + grey(ca.name)
-		);
+		console.log(yellow(` * ${italic(ca.filename)} `) + grey(ca.name));
 	});
 	await applyPush(token, toPush);
 	const newCas = cas.map((ca) => {
@@ -111,7 +112,7 @@ async function completePush(pwd) {
 	await saveBmc(wpPath, token, newCas);
 }
 
-async function push(pwd, caName, forPublish) {
+async function push(pwd: string, caName, forPublish) {
 	if (caName) {
 		await singlePush(pwd, caName);
 	} else {

@@ -14,6 +14,7 @@ import secureRandom from "secure-random";
 import jwt from "jsonwebtoken";
 // import { promisifyAll } from "bluebird";
 import { google } from "googleapis";
+import { Context } from "./types";
 
 function cloneGlobal() {
 	return Object.defineProperties(
@@ -28,7 +29,6 @@ function ___runMain(bmContext, code, filename, helpers) {
 		rp,
 		fs,
 		lodash,
-		_,
 		moment,
 		csv,
 		md5,
@@ -58,7 +58,7 @@ function ___runMain(bmContext, code, filename, helpers) {
 	runInNewContext(code, mainContext, { filename });
 }
 
-function caRunner(code, context, helpers, fulfill, token, filename) {
+function caRunner(code, context: Context, helpers, fulfill, token, filename) {
 	const __redisLib__ = require("redis");
 	promisifyAll(__redisLib__.RedisClient.prototype);
 	promisifyAll(__redisLib__.Multi.prototype);
@@ -150,7 +150,7 @@ function caRunner(code, context, helpers, fulfill, token, filename) {
 			});
 
 			redis.on("error", (err) => {
-				console.error("Node-redis client error: " + err);
+				console.error(`Node-redis client error: ${err}`);
 			});
 			// redis.unref(); // allowing the program to exit once no more commands are pending
 			return redis;

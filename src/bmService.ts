@@ -2,7 +2,7 @@ import https from "./httpPromise.js";
 
 const BASE_URL = "https://go.botmaker.com";
 
-export async function getAllCas(token) {
+export async function getAllCas(token: string) {
 	const headers = {
 		Accept: "application/json",
 		"Content-Type": "application/x-www-form-urlencoded",
@@ -11,7 +11,7 @@ export async function getAllCas(token) {
 	return await https(`${BASE_URL}/api/v1.0/clientAction`, { headers });
 }
 
-export async function getCa(token, caId) {
+export async function getCa(token: string, caId) {
 	const headers = {
 		Accept: "application/json",
 		"Content-Type": "application/x-www-form-urlencoded",
@@ -20,7 +20,7 @@ export async function getCa(token, caId) {
 	return await https(`${BASE_URL}/api/v1.0/clientAction/${caId}`, { headers });
 }
 
-export async function createCa(token, newCa) {
+export async function createCa(token: string, newCa) {
 	const headers = {
 		Accept: "application/json",
 		"Content-Type": "application/json",
@@ -33,7 +33,7 @@ export async function createCa(token, newCa) {
 	);
 }
 
-export async function updateCas(token, toUpdate) {
+export async function updateCas(token: string, toUpdate) {
 	const headers = {
 		Accept: "application/json",
 		"Content-Type": "application/json",
@@ -46,7 +46,7 @@ export async function updateCas(token, toUpdate) {
 	);
 }
 
-export async function getCustomerContext(token, customerId = "rnd") {
+export async function getCustomerContext(token: string, customerId = "rnd") {
 	const headers = {
 		"access-token": token,
 	};
@@ -55,7 +55,7 @@ export async function getCustomerContext(token, customerId = "rnd") {
 	});
 }
 
-export async function publishCa(token, caId) {
+export async function publishCa(token: string, caId) {
 	const headers = {
 		Accept: "application/json",
 		"access-token": token,

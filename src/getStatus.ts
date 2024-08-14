@@ -10,6 +10,7 @@ import chalk from "chalk";
 import { getAllCas, getCa } from "./bmService.js";
 import { getBmc } from "./bmcConfig.js";
 import getWorkspacePath from "./getWorkspacePath.js";
+import type { ClientAction } from "./types.js";
 
 const italic = chalk.italic;
 const gray = chalk.gray;
@@ -143,7 +144,7 @@ Local = lowercase  -> p u f n t
 */
 const posibleChanges = Object.values(ChangeType);
 
-const getCaPath = async (wpPath, caName) => {
+async function getCaPath(wpPath: string, caName: string) {
 	const posiblePaths = [
 		caName,
 		caName && join(wpPath, caName),
@@ -159,9 +160,9 @@ const getCaPath = async (wpPath, caName) => {
 		}
 	}
 	return null;
-};
+}
 
-export async function getCaByNameOrPath(wpPath, cas, caName) {
+export async function getCaByNameOrPath(wpPath: string, cas: ClientAction[], caName: string) {
 	if (!caName) return;
 	if (isAbsolute(caName)) {
 		return cas.find(
@@ -306,7 +307,7 @@ const getChangesFromStatus = (status, changesTypes = posibleChanges) => {
 	return changesTypes.filter((p) => p && processCode(p.code, status));
 };
 
-const getSingleStatusChanges = async (pwd, caName) => {
+async function getSingleStatusChanges(pwd: string, caName: string) {
 	const wpPath = await getWorkspacePath(pwd);
 	const { token, cas } = await getBmc(wpPath);
 	const matchedCa = await getCaByNameOrPath(wpPath, cas, caName);
@@ -315,13 +316,13 @@ const getSingleStatusChanges = async (pwd, caName) => {
 	const status = await getStatusData(wpPath, matchedCa, token);
 	const changes = getChangesFromStatus(status);
 	return { changes, status };
-};
+}
 
-async function* getStatusChanges(pwd) {
+async function* getStatusChanges(pwd: string) {
 	const wpPath = await getWorkspacePath(pwd);
 	const { token, cas } = await getBmc(wpPath);
 	const remoteCasRes = await getAllCas(token);
-	const remoteCas = JSON.parse(remoteCasRes.body);
+	const remoteCas: ClientAction[] = JSON.parse(remoteCasRes.body);
 	const newCas = remoteCas.filter((rca) =>
 		cas.every((lca) => lca.id !== rca.id),
 	);
@@ -342,7 +343,7 @@ async function* getStatusChanges(pwd) {
 	}
 }
 
-async function getStatus(pwd, caName) {
+async function getStatus(pwd: string, caName) {
 	if (caName) {
 		const statusChanges = await getSingleStatusChanges(pwd, caName);
 		const ca = statusChanges.status;
@@ -377,4 +378,4 @@ getStatus.getLocalStatus = getLocalStatus;
 getStatus.getCaByNameOrPath = getCaByNameOrPath;
 
 export { getStatus, getStatusChanges, getSingleStatusChanges, ChangeType };
-export default getStatus
+export default getStatus;

@@ -12,6 +12,7 @@ import { getBmc } from "./bmcConfig.js";
 import getWorkspacePath from "./getWorkspacePath.js";
 import { getMerge } from "./getDiff.js";
 import { formatName, getName } from "./importWorkspace.js";
+import type { ClientAction } from "./types.js";
 
 const bgRed = chalk.bgRed;
 const red = chalk.red;
@@ -21,7 +22,7 @@ const green = chalk.green;
 const writeFile = promisify(_writeFile);
 const rm = promisify(unlink);
 
-async function makeChanges(wpPath, cas, status, changes) {
+async function makeChanges(wpPath, cas: ClientAction[], status: ClientAction, changes): Promise<ClientAction[]> {
 	const notAdded = changes.includes(ChangeType.NOT_ADDED);
 	const hasLocalChanges = changes.includes(ChangeType.LOCAL_CHANGES);
 	const hasIncomingChanges = changes.includes(ChangeType.INCOMING_CHANGES);
@@ -35,85 +36,86 @@ async function makeChanges(wpPath, cas, status, changes) {
 	if (removeLocal && hasIncomingChanges) {
 		console.log(
 			bgRed(
-				`WARNING: ${status.name} has incoming changes but was deleted locally`
-			)
+				`WARNING: ${status.name} has incoming changes but was deleted locally`,
+			),
 		);
 		return cas;
 	}
 	if (hasLocalChanges && removeRemote) {
 		console.log(
 			bgRed(
-				`WARNING: ${join(wpPath, "src", status.fn)} has local changes but was deleted remotly.`
-			)
+				`WARNING: ${join(wpPath, "src", status.filename)} has local changes but was deleted remotly.`,
+			),
 		);
 		return cas;
 	}
 
 	if (removeRemote) {
-		console.log(red(`${join(wpPath, "src", status.fn)} was deleted`));
-		await rm(join(wpPath, "src", status.fn));
+		console.log(red(`${join(wpPath, "src", status.filename)} was deleted`));
+		await rm(join(wpPath, "src", status.filename));
 		return cas.filter((ca) => ca.id !== status.id);
 	}
 	if (hasLocalChanges && hasIncomingChanges) {
-		const remote = status.U || status.P;
-		const original = status.u || status.p;
-		const local = status.f;
+		const remote = status.unPublishedCode || status.publishedCode;
+		const original = status.unPublishedCode || status.publishedCode;
+		const local = status.filename;
 		const { conflict, result } = getMerge(local, original, remote);
 		if (conflict) {
 			console.log(
-				bgRed(`WARNING: ${join(wpPath, "src", status.fn)} has merge conflicts`)
+				bgRed(`WARNING: ${join(wpPath, "src", status.filename)} has merge conflicts`),
 			);
 		} else {
 			console.log(
 				yellow(
-					`WARNING: ${join(wpPath, "src", status.fn)} was merged automatically`
-				)
+					`WARNING: ${join(wpPath, "src", status.filename)} was merged automatically`,
+				),
 			);
 		}
-		await writeFile(join(wpPath, "src", status.fn), result, "UTF-8");
+		await writeFile(join(wpPath, "src", status.filename), result, "UTF-8");
 	} else if (hasIncomingChanges) {
-		const newVersion = status.U || status.P;
+		const newVersion: string = status.unPublishedCode || status.publishedCode;
 
-		if (status.fn) {
-			console.log(green(`${join(wpPath, "src", status.fn)} has changes`));
-			await writeFile(join(wpPath, "src", status.fn), newVersion, "UTF-8");
+		if (status.filename) {
+			console.log(green(`${join(wpPath, "src", status.filename)} has changes`));
+			await writeFile(join(wpPath, "src", status.name), newVersion, "UTF-8");
 		} else {
 			// new File
-			const baseName = formatName(status.N);
+			const baseName = formatName(status.name);
 			const newFileName = await getName(join(wpPath, "src"), baseName, "js");
 
 			await writeFile(join(wpPath, "src", newFileName), newVersion, "UTF-8");
-			status.fn = newFileName;
-			console.log(green(`${join(wpPath, "src", status.fn)} was added`));
+			status.filename = newFileName;
+			console.log(green(`${join(wpPath, "src", status.filename)} was added`));
 		}
 	} else if (wasAdded) {
-		const newVersion = status.U || status.P;
+		const newVersion: string = status.unPublishedCode || status.publishedCode;
 		// new File
-		const baseName = formatName(status.N);
+		const baseName = formatName(status.name);
 		const newFileName = await getName(join(wpPath, "src"), baseName, "js");
 
 		await writeFile(join(wpPath, "src", newFileName), newVersion, "UTF-8");
 		console.log(green(`${join(wpPath, "src", newFileName)} was added`));
 		return cas.concat({
-			publishedCode: status.P,
-			unPublishedCode: status.U,
-			name: status.N,
-			type: status.T,
+			publishedCode: status.publishedCode,
+			unPublishedCode: status.unPublishedCode,
+			name: status.name,
+			type: status.type,
 			id: status.id,
 			filename: newFileName,
 		});
 	}
 
-	return cas.map((ca) => ca.id !== status.id
-		? ca
-		: {
-			publishedCode: status.P,
-			unPublishedCode: status.U,
-			name: status.N,
-			type: status.T,
-			id: status.id,
-			filename: status.fn,
-		}
+	return cas.map((ca) =>
+		ca.id !== status.id
+			? ca
+			: {
+				id: status.id,
+				name: status.name,
+				type: status.type,
+				publishedCode: status.publishedCode,
+				unPublishedCode: status.unPublishedCode,
+				filename: status.filename,
+			},
 	);
 }
 
@@ -123,7 +125,7 @@ function hasMerge(changes) {
 	return hasLocalChanges && hasIncomingChanges;
 }
 
-async function singlePull(pwd, caName) {
+async function singlePull(pwd: string, caName: string) {
 	const wpPath = await getWorkspacePath(pwd);
 	const { token, cas } = await getBmc(wpPath);
 	const { changes, status } = await getSingleStatusChanges(pwd, caName);
@@ -135,12 +137,12 @@ async function singlePull(pwd, caName) {
 	await writeFile(
 		join(wpPath, ".bmc"),
 		JSON.stringify({ token, cas: newCas }),
-		"UTF-8"
+		"UTF-8",
 	);
 	return hasMerge(changes);
 }
 
-async function completePull(pwd) {
+async function completePull(pwd: string) {
 	const wpPath = await getWorkspacePath(pwd);
 	const { token, cas } = await getBmc(wpPath);
 	const changesGenerator = getStatusChanges(pwd);
@@ -158,12 +160,12 @@ async function completePull(pwd) {
 	await writeFile(
 		join(wpPath, ".bmc"),
 		JSON.stringify({ token, cas: newCas }),
-		"UTF-8"
+		"UTF-8",
 	);
 	return withMerges;
 }
 
-async function pull(pwd, caName) {
+async function pull(pwd: string, caName: string) {
 	if (caName) {
 		return await singlePull(pwd, caName);
 	}

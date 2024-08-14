@@ -15,15 +15,16 @@ const renameFile = promisify(_rename);
 
 function hasIncomingChanges(changes) {
 	return changes.some(
-		(c) => c === ChangeType.INCOMING_CHANGES ||
+		(c) =>
+			c === ChangeType.INCOMING_CHANGES ||
 			c === ChangeType.REMOVE_REMOTE ||
 			c === ChangeType.NEW_CA ||
 			c === ChangeType.RENAMED ||
-			c === ChangeType.TYPE_CHANGED
+			c === ChangeType.TYPE_CHANGED,
 	);
 }
 
-async function rename(pwd, caName, newName) {
+async function rename(pwd: string, caName, newName) {
 	const wpPath = await getWorkspacePath(pwd);
 	const { changes, status } = await getSingleStatusChanges(pwd, caName);
 	if (hasIncomingChanges(changes)) {

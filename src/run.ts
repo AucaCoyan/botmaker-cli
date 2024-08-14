@@ -15,6 +15,7 @@ import { getBmc } from "./bmcConfig.js";
 import express, { urlencoded, json } from "express";
 import { getCaByNameOrPath } from "./getStatus.js";
 import caEndpointRunner from "./caEndpointRunner.js";
+import type { Context } from "./types.js";
 
 const yellow = chalk.yellow;
 const green = chalk.green;
@@ -42,7 +43,7 @@ async function getCodeAnHelpers(wpPath, cas, ca) {
 	const code = await readFile(filePath, "utf8");
 	const match = require_core_action_pattern.exec(code);
 
-	while ((match) != null) {
+	while (match != null) {
 		const req = match[1] || match[2];
 		if (!req) continue;
 		const posibleReqFile =
@@ -50,8 +51,7 @@ async function getCodeAnHelpers(wpPath, cas, ca) {
 		const posibleUtils = join(wpPath, "src", posibleReqFile);
 		if (await exists(posibleUtils)) {
 			const helper = await readFile(posibleUtils, "utf8");
-			const parsedHelper =
-				`({${helper.replace(/function /, "").replace(/function /g, ",")}})\n//# sourceURL=${posibleUtils}`;
+			const parsedHelper = `({${helper.replace(/function /, "").replace(/function /g, ",")}})\n//# sourceURL=${posibleUtils}`;
 			helpers[req] = { code: parsedHelper, source: posibleUtils };
 		}
 	}
@@ -117,7 +117,7 @@ async function runEndpointCa(wpPath, token, cas, ca, port) {
 async function runUserCa(wpPath, token, cas, ca, vars, params, volatile) {
 	const { code, helpers, filePath } = await getCodeAnHelpers(wpPath, cas, ca);
 	const contextJson = await readFile(join(wpPath, "context.json"), "utf8");
-	const context = JSON.parse(contextJson);
+	const context: Context = JSON.parse(contextJson);
 	const commandVars = doubleArrayToObject(vars);
 	const commandParameters = doubleArrayToObject(params);
 	context.userData.variables = {
@@ -178,7 +178,7 @@ async function runUserCa(wpPath, token, cas, ca, vars, params, volatile) {
 }
 
 async function run(
-	pwd,
+	pwd: string,
 	file,
 	{ vars, params, volatile, endpoint, port = 7070 },
 ) {
