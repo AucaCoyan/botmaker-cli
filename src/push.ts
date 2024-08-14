@@ -11,7 +11,7 @@ const yellow = chalk.yellow;
 const italic = chalk.italic;
 const grey = chalk.gray;
 
-import publish from "./publish.js";
+import publish from "./publish.ts";
 
 const maxLength = 100000;
 

@@ -3,7 +3,7 @@ import { exists } from "node:fs";
 
 async function getWorkspacePath(pwd) {
 	console.log("getting workspace path..");
-	if (await exists(join(pwd, ".bmc"))) {
+	if (exists(join(pwd, ".bmc"))) {
 		return pwd;
 	}
 	if (await exists(join(pwd, "..", ".bmc"))) {
