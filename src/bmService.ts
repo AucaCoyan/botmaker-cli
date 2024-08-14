@@ -11,7 +11,7 @@ export async function getAllCas(token: string) {
 	return await https(`${BASE_URL}/api/v1.0/clientAction`, { headers });
 }
 
-export async function getCa(token: string, caId) {
+export async function getCa(token: string, caId: string) {
 	const headers = {
 		Accept: "application/json",
 		"Content-Type": "application/x-www-form-urlencoded",

@@ -19,7 +19,7 @@ const readFile = promisify(_readFile);
 const exists = promisify(_exists);
 const readdir = promisify(_readdir);
 
-function processCode(code, status, gate) {
+function processCode(code, status, gate?) {
 	if (Array.isArray(code)) {
 		if (!gate) {
 			return code.some((c) => processCode(c, status));
@@ -200,7 +200,7 @@ export async function getCaByNameOrPath(wpPath: string, cas: ClientAction[], caN
 	throw new Error(`'${caName}' not found`);
 }
 
-const getLocalStatus = async (wpPath, ca) => {
+async function getLocalStatus(wpPath: string, ca: ClientAction) {
 	if (!ca.filename) {
 		return {
 			p: null,
@@ -225,15 +225,16 @@ const getLocalStatus = async (wpPath, ca) => {
 	const id = ca ? ca.id : null;
 	const fn = ca ? ca.filename : null;
 	return { p, t, f, u, n, id, fn };
-};
+}
 
+// const NO_REMOTE: ClientAction = { P: null, U: null, N: null, T: null };
 const NO_REMOTE = { P: null, U: null, N: null, T: null };
-const getRemoteStatus = async (token, id) => {
+async function getRemoteStatus(token: string, id: string) {
 	if (!id) return NO_REMOTE;
 	try {
 		const caResp = await getCa(token, id);
-		const { name, type, publishedCode, unPublishedCode } = JSON.parse(
-			caResp.body,
+		const { name, type, publishedCode, unPublishedCode }: ClientAction = JSON.parse(
+			caResp.body
 		);
 		return {
 			N: name,
@@ -246,35 +247,34 @@ const getRemoteStatus = async (token, id) => {
 		console.error(e);
 		return NO_REMOTE;
 	}
-};
+}
 
-const findRemoteStatus = (remotesCas, id) => {
+function findRemoteStatus(remotesCas: ClientAction[], id: string): ClientAction {
 	if (!id) return NO_REMOTE;
 	const caResp = remotesCas.find((rca) => rca.id === id);
 	if (!caResp) {
 		return NO_REMOTE;
 	}
-	const { name, type, publishedCode, unPublishedCode } = caResp;
+	const { name, type, publishedCode, unPublishedCode }: ClientAction = caResp;
 	return {
 		N: name,
 		T: type,
 		P: publishedCode,
 		U: unPublishedCode != null ? unPublishedCode : null,
 	};
-};
+}
 
-const getStatusData = async (wpPath, ca, remoteOrToken) => {
+async function getStatusData(wpPath: string, ca: ClientAction, remoteOrToken: string | ClientAction[]) {
 	const localStatus = await getLocalStatus(wpPath, ca);
-	const remoteStatus =
-		typeof remoteOrToken === "string"
-			? await getRemoteStatus(remoteOrToken, ca.id)
-			: Array.isArray(remoteOrToken)
-				? findRemoteStatus(remoteOrToken, ca.id)
-				: {};
+	const remoteStatus = typeof remoteOrToken === "string"
+		? await getRemoteStatus(remoteOrToken, ca.id)
+		: Array.isArray(remoteOrToken)
+			? findRemoteStatus(remoteOrToken, ca.id)
+			: {};
 	return { ...remoteStatus, ...localStatus };
-};
+}
 
-const getChangeByCode = (code, status) => {
+function getChangeByCode(code: string, status) {
 	if (typeof code !== "string" || code.length !== 2) {
 		throw new Error("Invalid diff code. Must be 2 caracters");
 	}
@@ -283,9 +283,9 @@ const getChangeByCode = (code, status) => {
 		return [status[code[0]], status[code[1]]];
 	}
 	return posibleChange.diff(status);
-};
+}
 
-const showChanges = (changes, ca) => {
+function showChanges(changes, ca?: string | ClientAction) {
 	if (!ca) {
 		changes.forEach((ch) => {
 			console.log(` * [${chalk[ch.color](ch.short)}] ${ch.label}`);
@@ -294,18 +294,18 @@ const showChanges = (changes, ca) => {
 		const changesDesc = changes
 			.map((ch) => chalk[ch.color](ch.short))
 			.join(" ");
-		const caName = typeof ca === "string" ? ca : ca.n || ca.N;
-		const caFileName = ca.fn;
+		const caName = typeof ca === "string" ? ca : ca.name;
+		const caFileName = typeof ca === "string" ? ca : ca.filename;
 		const caDesc = caFileName
 			? `${italic(caFileName)} ${caName ? gray(caName) : ""}`
 			: caName;
 		console.log(`${changesDesc}: ${caDesc}`);
 	}
-};
+}
 
-const getChangesFromStatus = (status, changesTypes = posibleChanges) => {
+function getChangesFromStatus(status, changesTypes = posibleChanges) {
 	return changesTypes.filter((p) => p && processCode(p.code, status));
-};
+}
 
 async function getSingleStatusChanges(pwd: string, caName: string) {
 	const wpPath = await getWorkspacePath(pwd);
@@ -354,7 +354,7 @@ async function getStatus(pwd: string, caName) {
 		console.log(`${caDesc}\n`);
 		showChanges(statusChanges.changes);
 	} else {
-		const statusChanges = getStatusChanges(pwd, caName);
+		const statusChanges = getStatusChanges(pwd);
 		const changesSet = new Set();
 		for await (const statusChange of statusChanges) {
 			if (statusChange.changes.length === 0) {

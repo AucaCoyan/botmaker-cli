@@ -4,7 +4,7 @@ export type ClientAction = {
 	type: string;
 	// codigo inicial para publicar
 	publishedCode?: string
-	unPublishedCode: string
+	unPublishedCode: string | null
 	// filename sample.js
 	filename: string
 };

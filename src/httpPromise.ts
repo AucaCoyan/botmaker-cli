@@ -1,6 +1,6 @@
 import { request } from "node:https";
 
-export default (url: string, urlOptions, data) => {
+export default (url: string, urlOptions, data?) => {
 	return new Promise((resolve, reject) => {
 		const req = request(url, urlOptions, (res) => {
 			res.setEncoding("utf8");
