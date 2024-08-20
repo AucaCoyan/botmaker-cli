@@ -1,15 +1,15 @@
-import { join } from "node:path";
-import { promisify } from "node:util";
 import {
+	exists as _exists,
+	mkdir as _mkdir,
 	readFile as _readFile,
 	readdir as _readdir,
 	writeFile as _writeFile,
-	exists as _exists,
-	mkdir as _mkdir,
 } from "node:fs";
-import { decode as _decode } from "jsonwebtoken";
-import { getAllCas, getCustomerContext } from "./bmService.js";
+import { join } from "node:path";
+import { promisify } from "node:util";
 import { copy } from "fs-extra";
+import { type JwtPayload, decode as _decode } from "jsonwebtoken";
+import { getAllCas, getCustomerContext } from "./bmService.js";
 import type { BMCFile, ClientAction, Context } from "./types.js";
 
 const writeFile = promisify(_writeFile);
@@ -26,7 +26,12 @@ function formatName(name: string): string {
 		.toLowerCase();
 }
 
-async function getName(folder, basename: string, extension: string, num?) {
+async function getName(
+	folder: string,
+	basename: string,
+	extension: string,
+	num?: number,
+): Promise<string> {
 	const counterPart = num !== undefined ? `_${num}` : "";
 	const finalName = `${basename}${counterPart}.${extension}`;
 	const finalPath = join(folder, finalName);
@@ -41,8 +46,13 @@ async function getName(folder, basename: string, extension: string, num?) {
 	return finalName;
 }
 
-async function importWorkspace(pwd: string, apiToken) {
-	const decode = _decode(apiToken);
+type JWTtoken = {
+	// nombre del bot
+	businessId: string;
+};
+
+async function importWorkspace(pwd: string, apiToken: string) {
+	const decode: JWTtoken = _decode(apiToken);
 	if (!decode) {
 		console.error(
 			"bmc: Invalid jwt token. Please generate a api token from https://go.botmaker.com/#/platforms in 'Botmaker API - Credenciales'",
