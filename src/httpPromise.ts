@@ -1,6 +1,9 @@
 import { request } from "node:https";
+import type { RequestOptions } from "node:http";
 
-export default (url: string, urlOptions, data?) => {
+type urlOptions = RequestOptions;
+
+export default (url: string, urlOptions: urlOptions, data?: any) => {
 	return new Promise((resolve, reject) => {
 		const req = request(url, urlOptions, (res) => {
 			res.setEncoding("utf8");
@@ -21,7 +24,7 @@ export default (url: string, urlOptions, data?) => {
 		});
 		req.on("error", reject);
 		if (data) {
-			req.write(data, "UTF-8");
+			req.write(data, "utf-8");
 		}
 		req.end();
 	});

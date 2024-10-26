@@ -4,11 +4,11 @@ import { join } from "node:path";
 import chalk from "chalk";
 import { exec } from "node:child_process";
 
-import { getBmc, saveBmc } from "./bmcConfig.js";
-import getWorkspacePath from "./getWorkspacePath.js";
-import { getName, formatName } from "./importWorkspace.js";
-import { createCa } from "./bmService.js";
-import type { ClientAction } from "./types.js";
+import { getBmc, saveBmc } from "./bmcConfig.ts";
+import getWorkspacePath from "./getWorkspacePath.ts";
+import { getName, formatName } from "./importWorkspace.ts";
+import { createCa } from "./bmService.ts";
+import type { ClientAction } from "./types.ts";
 
 const green = chalk.green;
 const writeFile = promisify(_writeFile);
@@ -60,40 +60,50 @@ main()
   });
 `;
 
-async function createFileAndStatus(wpPath, ca: ClientAction, openVsCode: boolean) {
-  const baseName = formatName(ca.name);
-  const newFileName = await getName(join(wpPath, "src"), baseName, "js");
+async function createFileAndStatus(
+	wpPath,
+	ca: ClientAction,
+	openVsCode: boolean,
+) {
+	const baseName = formatName(ca.name);
+	const newFileName = await getName(join(wpPath, "src"), baseName, "js");
 
-  const filePath = join(wpPath, "src", newFileName);
-  if (ca.publishedCode !== undefined) {
-    await writeFile(filePath, ca.publishedCode, "UTF-8");
-  } else {
-    console.error("PublishedCode property is undefined!");
-  }
-  console.log(green(`${filePath} was added`));
+	const filePath = join(wpPath, "src", newFileName);
+	if (ca.publishedCode !== undefined) {
+		await writeFile(filePath, ca.publishedCode, "UTF-8");
+	} else {
+		console.error("PublishedCode property is undefined!");
+	}
+	console.log(green(`${filePath} was added`));
 
-  if (openVsCode) {
-    exec(`code "${filePath}"`);
-  }
-  return {
-    ...ca,
-    filename: newFileName,
-  };
+	if (openVsCode) {
+		exec(`code "${filePath}"`);
+	}
+	return {
+		...ca,
+		filename: newFileName,
+	};
 }
 
-async function newCa(pwd: string, caName, type, openVsCode = false) {
-  const newCa = {
-    publishedCode: type === "USER" ? baseCa : baseEndPointCa,
-    name: caName,
-    type: type,
-  };
-  const wpPath = await getWorkspacePath(pwd);
-  const { token, cas } = await getBmc(wpPath);
-  const resp = await createCa(token, newCa);
-  const ca = JSON.parse(resp.body);
-  const status = await createFileAndStatus(wpPath, ca, openVsCode);
-  const newCas = cas.concat(status);
-  await saveBmc(wpPath, token, newCas);
+type TypeOfClientAction = "ENDPOINT" | "USER";
+async function newCa(
+	pwd: string,
+	caName: string,
+	type: TypeOfClientAction,
+	openVsCode = false,
+) {
+	const newCa: ClientAction = {
+		publishedCode: type === "USER" ? baseCa : baseEndPointCa,
+		name: caName,
+		type: type,
+	};
+	const wpPath = await getWorkspacePath(pwd);
+	const { token, cas } = await getBmc(wpPath);
+	const resp = await createCa(token, newCa);
+	const ca = JSON.parse(resp.body);
+	const status = await createFileAndStatus(wpPath, ca, openVsCode);
+	const newCas = cas.concat(status);
+	await saveBmc(wpPath, token, newCas);
 }
 
 export default newCa;

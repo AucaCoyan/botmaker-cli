@@ -29,7 +29,7 @@ function isUnpublish(changes) {
 	return changes.some((c) => c === ChangeType.UNPUBLISHED);
 }
 
-async function publish(pwd: string, caName) {
+async function publish(pwd: string, caName: string) {
 	const wpPath = await getWorkspacePath(pwd);
 	const { changes, status } = await getSingleStatusChanges(pwd, caName);
 

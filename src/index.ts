@@ -1,4 +1,4 @@
-import { getDiff } from "./getDiff.js";
+import { getDiff } from "./getDiff.ts";
 import newCa from "./newCa.js";
 import pull from "./pull.js";
 import push from "./push.js";

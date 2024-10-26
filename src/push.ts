@@ -19,7 +19,7 @@ import publish from "./publish.ts";
 
 const maxLength = 100000;
 
-function checkClientActionLength(text, caName) {
+function checkClientActionLength(text: string, caName) {
 	if (text.length > maxLength) {
 		console.log(
 			red(
@@ -42,7 +42,7 @@ function getPushChanges(status, changes) {
 	};
 }
 
-async function applyPush(token, changes) {
+async function applyPush(token: string, changes) {
 	await updateCas(token, changes);
 }
 
@@ -57,7 +57,7 @@ function hasIncomingChanges(changes) {
 	);
 }
 
-async function singlePush(pwd, caName) {
+async function singlePush(pwd: string, caName: string) {
 	const wpPath = await getWorkspacePath(pwd);
 	const { changes, status } = await getSingleStatusChanges(pwd, caName);
 	if (hasIncomingChanges(changes)) {
@@ -112,7 +112,9 @@ async function completePush(pwd) {
 	await saveBmc(wpPath, token, newCas);
 }
 
-async function push(pwd: string, caName, forPublish) {
+type BoolAsString = "TRUE" | "FALSE";
+
+async function push(pwd: string, caName: string, forPublish: BoolAsString) {
 	if (caName) {
 		await singlePush(pwd, caName);
 	} else {

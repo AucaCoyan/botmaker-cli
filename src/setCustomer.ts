@@ -1,7 +1,7 @@
 import path from "node:path";
 import { promisify } from "node:util";
 import fs from "node:fs";
-import { getCustomerContext } from "./bmService.js";
+import { getCustomerContext } from "./bmService";
 import { getBmc } from "./bmcConfig.js";
 import getWorkspacePath from "./getWorkspacePath.js";
 import type { Context } from "./types.js";
