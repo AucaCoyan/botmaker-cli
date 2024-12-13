@@ -61,49 +61,49 @@ main()
 `;
 
 async function createFileAndStatus(
-	wpPath,
-	ca: ClientAction,
-	openVsCode: boolean,
+    wpPath,
+    ca: ClientAction,
+    openVsCode: boolean,
 ) {
-	const baseName = formatName(ca.name);
-	const newFileName = await getName(join(wpPath, "src"), baseName, "js");
+    const baseName = formatName(ca.name);
+    const newFileName = await getName(join(wpPath, "src"), baseName, "js");
 
-	const filePath = join(wpPath, "src", newFileName);
-	if (ca.publishedCode !== undefined) {
-		await writeFile(filePath, ca.publishedCode, "UTF-8");
-	} else {
-		console.error("PublishedCode property is undefined!");
-	}
-	console.log(green(`${filePath} was added`));
+    const filePath = join(wpPath, "src", newFileName);
+    if (ca.publishedCode !== undefined) {
+        await writeFile(filePath, ca.publishedCode, "UTF-8");
+    } else {
+        console.error("PublishedCode property is undefined!");
+    }
+    console.log(green(`${filePath} was added`));
 
-	if (openVsCode) {
-		exec(`code "${filePath}"`);
-	}
-	return {
-		...ca,
-		filename: newFileName,
-	};
+    if (openVsCode) {
+        exec(`code "${filePath}"`);
+    }
+    return {
+        ...ca,
+        filename: newFileName,
+    };
 }
 
 type TypeOfClientAction = "ENDPOINT" | "USER";
 async function newCa(
-	pwd: string,
-	caName: string,
-	type: TypeOfClientAction,
-	openVsCode = false,
+    pwd: string,
+    caName: string,
+    type: TypeOfClientAction,
+    openVsCode = false,
 ) {
-	const newCa: ClientAction = {
-		publishedCode: type === "USER" ? baseCa : baseEndPointCa,
-		name: caName,
-		type: type,
-	};
-	const wpPath = await getWorkspacePath(pwd);
-	const { token, cas } = await getBmc(wpPath);
-	const resp = await createCa(token, newCa);
-	const ca = JSON.parse(resp.body);
-	const status = await createFileAndStatus(wpPath, ca, openVsCode);
-	const newCas = cas.concat(status);
-	await saveBmc(wpPath, token, newCas);
+    const newCa: ClientAction = {
+        publishedCode: type === "USER" ? baseCa : baseEndPointCa,
+        name: caName,
+        type: type,
+    };
+    const wpPath = await getWorkspacePath(pwd);
+    const { token, cas } = await getBmc(wpPath);
+    const resp = await createCa(token, newCa);
+    const ca = JSON.parse(resp.body);
+    const status = await createFileAndStatus(wpPath, ca, openVsCode);
+    const newCas = cas.concat(status);
+    await saveBmc(wpPath, token, newCas);
 }
 
 export default newCa;

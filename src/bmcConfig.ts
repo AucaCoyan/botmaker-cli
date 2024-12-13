@@ -7,18 +7,18 @@ const readFile = promisify(_readFile);
 const writeFile = promisify(_writeFile);
 
 export async function getBmc(wpPath: string): Promise<BMCFile> {
-	const bmc = await readFile(join(wpPath, ".bmc"), "UTF-8");
-	return JSON.parse(bmc);
+    const bmc = await readFile(join(wpPath, ".bmc"), "UTF-8");
+    return JSON.parse(bmc);
 }
 
 export async function saveBmc(
-	wpPath: string,
-	token: string,
-	cas: ClientAction[],
+    wpPath: string,
+    token: string,
+    cas: ClientAction[],
 ) {
-	await writeFile(
-		join(wpPath, ".bmc"),
-		JSON.stringify({ token, cas }),
-		"UTF-8",
-	);
+    await writeFile(
+        join(wpPath, ".bmc"),
+        JSON.stringify({ token, cas }),
+        "UTF-8",
+    );
 }
