@@ -21,7 +21,7 @@ function cloneGlobal() {
     );
 }
 
-function ___runMain(bmContext, code, filename, helpers) {
+function ___runMain(bmContext, code: string, filename: string, helpers: object) {
     const context = Object.assign(cloneGlobal(), {
         ...bmContext,
         request: bmContext.req,
@@ -69,9 +69,9 @@ export default function caEndpointRunner(
     req,
     res,
     token,
-    code,
-    helpers,
-    filePath,
+    code: string,
+    helpers: object,
+    filePath: string,
 ) {
     const __redisLib__ = require("redis");
     // promisifyAll(__redisLib__.RedisClient.prototype);
@@ -104,18 +104,18 @@ export default function caEndpointRunner(
         const bmconsole = {};
         ["log", "warn", "error"].forEach(
             (method) =>
-                (bmconsole[method] = (...p) => {
-                    const { caller, line } =
-                        __parceStackTrace(new Error()).stack[1] || {};
-                    console[method](
-                        consoleColor[method](
-                            chalk.bold(
-                                `${caller === "eval" ? "main" : caller}:${line}~>`,
-                            ),
-                            ...p,
+            (bmconsole[method] = (...p) => {
+                const { caller, line } =
+                    __parceStackTrace(new Error()).stack[1] || {};
+                console[method](
+                    consoleColor[method](
+                        chalk.bold(
+                            `${caller === "eval" ? "main" : caller}:${line}~>`,
                         ),
-                    );
-                }),
+                        ...p,
+                    ),
+                );
+            }),
         );
 
         function connectRedis() {

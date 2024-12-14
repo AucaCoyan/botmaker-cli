@@ -59,7 +59,7 @@ function ___runMain(bmContext, code, filename, helpers) {
     runInNewContext(code, mainContext, { filename });
 }
 
-function caRunner(code, context: Context, helpers, fulfill, token, filename) {
+function caRunner(code: string, context: Context, helpers: object, fulfill, token, filename: string) {
     const __redisLib__ = require("redis");
     promisifyAll(__redisLib__.RedisClient.prototype);
     promisifyAll(__redisLib__.Multi.prototype);

@@ -45,6 +45,11 @@ function processCode(code, status, gate?) {
 }
 
 class ChangeStatusType {
+    label: string;
+    short: string;
+    code: string;
+    color: string;
+    diff: (item) => typeof item[];
     constructor(label, short, code, color, diff) {
         this.label = label;
         this.short = short;
@@ -280,8 +285,8 @@ async function getStatusData(
         typeof remoteOrToken === "string"
             ? await getRemoteStatus(remoteOrToken, ca.id)
             : Array.isArray(remoteOrToken)
-              ? findRemoteStatus(remoteOrToken, ca.id)
-              : {};
+                ? findRemoteStatus(remoteOrToken, ca.id)
+                : {};
     return { ...remoteStatus, ...localStatus };
 }
 

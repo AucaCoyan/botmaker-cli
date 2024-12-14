@@ -24,3 +24,9 @@ export type Context = {
     userData: UserData;
     params: any;
 };
+
+export type CodeAnHelpers = {
+    code: string
+    helpers: object
+    filePath: string
+}
