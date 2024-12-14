@@ -15,7 +15,7 @@ import { getBmc } from "./bmcConfig.js";
 import express, { urlencoded, json } from "express";
 import { getCaByNameOrPath } from "./getStatus.js";
 import caEndpointRunner from "./caEndpointRunner.js";
-import type { Context } from "./types.js";
+import type { ClientAction, CodeAnHelpers, Context } from "./types.js";
 
 const yellow = chalk.yellow;
 const green = chalk.green;
@@ -25,18 +25,18 @@ const readFile = promisify(_readFile);
 const writeFile = promisify(_writeFile);
 const exists = promisify(_exists);
 
-const doubleArrayToObject = (array) => {
+function doubleArrayToObject(array) {
     const obj = {};
     for (let index = 0; index < array.length / 2; index++) {
         obj[array[index]] = array[index + 1];
     }
     return obj;
-};
+}
 
 const require_core_action_pattern =
     /require\((?:(?:'([a-zA-Z0-9_-]*))'|(?:"([a-zA-Z0-9_-]*)"))\)/g;
 
-async function getCodeAnHelpers(wpPath, cas, ca) {
+async function getCodeAnHelpers(wpPath: string, cas: ClientAction[], ca: ClientAction): Promise<CodeAnHelpers> {
     const filePath = join(wpPath, "src", ca.filename);
     const helpers = {};
 
@@ -58,7 +58,7 @@ async function getCodeAnHelpers(wpPath, cas, ca) {
     return { code, helpers, filePath };
 }
 
-async function runEndpointCa(wpPath, token, cas, ca, port) {
+async function runEndpointCa(wpPath, token, cas: ClientAction[], ca: ClientAction, port) {
     const app = express();
     app.use(urlencoded({ extended: true }));
     app.use(json());
@@ -87,8 +87,8 @@ async function runEndpointCa(wpPath, token, cas, ca, port) {
         next();
     });
 
-    const runTest = () =>
-        new Promise((r) => rl.question("Press ENTER to run test", r)).then(
+    function runTest() {
+        return new Promise((r) => rl.question("Press ENTER to run test", r)).then(
             async () => {
                 console.log("Calling service...");
                 try {
@@ -98,8 +98,9 @@ async function runEndpointCa(wpPath, token, cas, ca, port) {
                     console.error(red(err.message));
                 }
                 return runTest();
-            },
+            }
         );
+    }
 
     app.use(async (req, res) => {
         const { code, helpers, filePath } = await getCodeAnHelpers(
@@ -122,7 +123,7 @@ async function runEndpointCa(wpPath, token, cas, ca, port) {
     });
 }
 
-async function runUserCa(wpPath, token, cas, ca, vars, params, volatile) {
+async function runUserCa(wpPath: string, token, cas: ClientAction[], ca: ClientAction, vars, params, volatile) {
     const { code, helpers, filePath } = await getCodeAnHelpers(wpPath, cas, ca);
     const contextJson = await readFile(join(wpPath, "context.json"), "utf8");
     const context: Context = JSON.parse(contextJson);
@@ -193,6 +194,7 @@ async function run(
     { vars, params, volatile, endpoint, port = 7070 },
 ) {
     console.log("running!");
+    // console.log(file);
     const wpPath = await getWorkspacePath(pwd);
     const { token, cas } = await getBmc(wpPath);
     const ca = await getCaByNameOrPath(wpPath, cas, file);

@@ -172,7 +172,7 @@ export async function getCaByNameOrPath(
     cas: ClientAction[],
     caName: string,
 ) {
-    if (!caName) return;
+    // if (!caName) return;
     if (isAbsolute(caName)) {
         return cas.find(
             (ca) => relative(join(wpPath, "src", ca.filename), caName) === "",
@@ -204,6 +204,8 @@ export async function getCaByNameOrPath(
 
     const nonAdded = await getCaPath(wpPath, caName);
     if (nonAdded) {
+        // TODO: No entiendo por que hay que retornar este caso
+        // y no se le agrega un id, name & type
         return { filename: basename(nonAdded) };
     }
     throw new Error(`'${caName}' not found`);
@@ -228,7 +230,7 @@ async function getLocalStatus(wpPath: string, ca: ClientAction) {
         throw new Error(`The file ${filePath} has unresolved merge conflicts`);
     }
     const p = ca ? ca.publishedCode : null;
-    const u = ca && ca.unPublishedCode != null ? ca.unPublishedCode : null;
+    const u = ca.unPublishedCode != null ? ca.unPublishedCode : null;
     const n = ca ? ca.name : null;
     const t = ca ? ca.type : null;
     const id = ca ? ca.id : null;
