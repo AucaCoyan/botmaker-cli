@@ -1,6 +1,6 @@
 {
   "name": "@botmaker.org/botmaker-cli",
-  "version": "0.1.8",
+  "version": "0.1.15",
   "description": "botmaker-console",
   "main": "index.js",
   "type": "module",
@@ -24,21 +24,25 @@
     "chalk": "^4.1.0",
     "diff": "^5.0.0",
     "express": "^4.17.1",
-    "fast-csv": "^2.4.1",
+    "fast-csv": "^4.3.6",
     "fs-extra": "^9.1.0",
     "googleapis": "^92.0.0",
     "js-sha256": "^0.9.0",
-    "jsonwebtoken": "^8.3.0",
+    "jsonwebtoken": "^9.0.2",
+    "oauth-1.0a": "^2.2.6",
     "lodash": "^4.17.10",
     "md5": "^2.2.1",
     "moment": "^2.22.2",
+    "moment-timezone": "^0.5.34",
     "node-diff3": "^2.1.2",
     "node-fetch": "^2.6.6",
+    "pg": "^8.7.3",
     "redis": "^2.8.0",
     "request": "^2.88.2",
     "request-promise": "^4.2.5",
     "secure-random": "^1.1.1",
-    "xml2js": "^0.4.19",
+    "sharp": "^0.32.1",
+    "xml2js": "^0.6.2",
     "xml2json": "^0.12.0",
     "yargs": "^16.2.0"
   },
@@ -57,7 +61,9 @@
     "type": "git",
     "url": "git+https://github.com/botmaker-org/botmaker-cli.git"
   },
-  "keywords": ["botmaker"],
+  "keywords": [
+    "botmaker"
+  ],
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/botmaker-org/botmaker-cli/issues"

@@ -335,6 +335,13 @@ interface BmConsole {
     error: (...params: any[]) => void;
 }
 
+interface BmDb {
+    get: (k: string) => Promise<string>,
+    exists: (k: string) => Promise<string>,
+    del: (k: string) => Promise<void>,
+    set: (k, v) => Promise<void>,
+}
+
 type PromisifyAllKeys<T> = T extends string ? `${T}Async` : never;
 type WithoutLast<T> = T extends [...infer A, any] ? A : [];
 type Last<T> = T extends [...any[], infer L] ? L : never;
@@ -390,4 +397,5 @@ declare global {
     declare const jwt = jwt;
     declare const bluebird = bluebird;
     declare const google = google;
+    declare const db: BmDb;
 }
