@@ -1,15 +1,15 @@
 {
-	"version": "0.2.0",
-	"configurations": [
-		{
-			"type": "pwa-node",
-			"request": "launch",
-			"name": "Debug",
-			"cwd": "${workspaceFolder}",
-			"runtimeExecutable": "bmc",
-			"skipFiles": ["<node_internals>/**"],
-			"runtimeArgs": ["run", "${file}"],
-			"console": "integratedTerminal"
-		}
-	]
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "pwa-node",
+      "request": "launch",
+      "name": "Debug",
+      "cwd": "${workspaceFolder}",
+      "runtimeExecutable": "bmc",
+      "skipFiles": ["<node_internals>/**"],
+      "runtimeArgs": ["run", "${file}"],
+      "console": "integratedTerminal"
+    }
+  ]
 }

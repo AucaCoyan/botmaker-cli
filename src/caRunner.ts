@@ -14,7 +14,7 @@ import secureRandom from "secure-random";
 import jwt from "jsonwebtoken";
 // import { promisifyAll } from "bluebird";
 import { google } from "googleapis";
-import { Context } from "./types";
+import type { Context } from "./types";
 
 function cloneGlobal() {
     return Object.defineProperties(
