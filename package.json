@@ -9,6 +9,8 @@
     "dev": "bun bin/bmc.ts",
     "fmt": "biome format . --write",
     "lint": "biome lint . --write",
+    "clean": "rm node_modules/",
+    "build": "bun build ./bin/bmc.ts --compile",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "preferGlobal": true,
@@ -48,6 +50,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^1.8.3",
+    "@types/bun": "^1.1.14",
     "@types/jsonwebtoken": "^9.0.6",
     "@types/lodash": "^4.17.7",
     "@types/md5": "^2.3.5",
