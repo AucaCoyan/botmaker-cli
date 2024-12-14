@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "start": "node src/run.js",
-    "dev": "bun bin/bmc.js",
+    "dev": "bun bin/bmc.ts",
     "fmt": "biome format . --write",
     "lint": "biome lint . --write",
     "test": "echo \"Error: no test specified\" && exit 1"
