@@ -24,3 +24,45 @@ export const subcommand_list: subcommands_names[] = [
     "rename",
     "help",
 ];
+
+export type ClientAction = {
+    id: string;
+    name: string;
+    type: string;
+    // codigo inicial para publicar
+    publishedCode?: string;
+    unPublishedCode: string | null;
+    // filename sample.js
+    filename: string;
+};
+
+export type BMCFile = {
+    token: string;
+    cas: ClientAction[];
+};
+
+export type UserData = {
+    FIRST_NAME: string;
+    LAST_NAME: string;
+    variables: any;
+};
+
+export type Context = {
+    userData: UserData;
+    params: any;
+};
+
+export type CodeAnHelpers = {
+    code: string
+    helpers: object
+    filePath: string
+}
+
+export type JWTBotmaker = {
+    businessId: string
+    name: string
+    api: boolean
+    id: string
+    exp: number
+    jti: string
+}
