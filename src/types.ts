@@ -44,12 +44,12 @@ export type BMCFile = {
 export type UserData = {
     FIRST_NAME: string;
     LAST_NAME: string;
-    variables: any;
+    variables: Map<string, string>;
 };
 
 export type Context = {
     userData: UserData;
-    params: any;
+    params: Map<string, string>;
 };
 
 export type CodeAnHelpers = {
