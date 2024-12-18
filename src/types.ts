@@ -53,16 +53,16 @@ export type Context = {
 };
 
 export type CodeAnHelpers = {
-    code: string
-    helpers: object
-    filePath: string
-}
+    code: string;
+    helpers: object;
+    filePath: string;
+};
 
 export type JWTBotmaker = {
-    businessId: string
-    name: string
-    api: boolean
-    id: string
-    exp: number
-    jti: string
-}
+    businessId: string;
+    name: string;
+    api: boolean;
+    id: string;
+    exp: number;
+    jti: string;
+};

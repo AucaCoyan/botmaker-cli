@@ -21,7 +21,7 @@ const args = parseArgs(Deno.args, {
 });
 console.log(`you passed ${JSON.stringify(args)}`);
 
-const args_array = args._.map((e) => e.toString())
+const args_array = args._.map((e) => e.toString());
 const user_submitted: subcommands_names = args_array[0].toString();
 
 if (!subcommand_list.includes(user_submitted)) {
@@ -34,7 +34,6 @@ if (args.help === true) {
     print_help(user_submitted);
 }
 
-
 const CWD = Deno.cwd();
 
 switch (user_submitted) {
@@ -44,7 +43,7 @@ switch (user_submitted) {
         break;
     case "import":
         console.log("running import...");
-        importWorkspace(CWD, args_array)
+        importWorkspace(CWD, args_array);
         break;
     case "set-customer":
         console.log("running set-customer...");
