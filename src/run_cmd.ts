@@ -8,8 +8,9 @@ export function runEndpointCa(wpPath: string, args: string[]) {
   }
 
   const source = args[1]
-  if (existsSync(`${wpPath}/src/${source}`)) {
-    console.log(`${source} file exists!`)
+  if (!existsSync(`${wpPath}/src/${source}`)) {
+    console.error(`File /src/${source} doesn't exist!`)
+    Deno.exit(1)
   }
 
   console.log(wpPath, args);

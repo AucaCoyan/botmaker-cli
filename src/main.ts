@@ -6,6 +6,7 @@ import { parseArgs } from "@std/cli/parse-args";
 import { runEndpointCa } from "./run_cmd.ts";
 import { print_help } from "./help_cmd.ts";
 import { subcommand_list, type subcommands_names } from "./types.ts";
+import { importWorkspace } from "./import_cmd.ts";
 
 const args = parseArgs(Deno.args, {
     alias: {
@@ -43,6 +44,7 @@ switch (user_submitted) {
         break;
     case "import":
         console.log("running import...");
+        importWorkspace(CWD, args_array)
         break;
     case "set-customer":
         console.log("running set-customer...");
