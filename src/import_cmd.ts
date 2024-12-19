@@ -76,7 +76,7 @@ export async function importWorkspace(pwd: string, args: string[]) {
         cas,
         token: apiToken,
     };
-    await Deno.writeTextFile(join(workspacePath, ".bmc"), JSON.stringify(bmc), "UTF-8");
+    await Deno.writeTextFile(join(workspacePath, ".bmc"), JSON.stringify(bmc));
 }
 
 function formatName(name: string): string {

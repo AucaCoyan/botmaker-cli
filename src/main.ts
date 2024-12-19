@@ -22,7 +22,7 @@ const args = parseArgs(Deno.args, {
 console.log(`you passed ${JSON.stringify(args)}`);
 
 const args_array = args._.map((e) => e.toString());
-const user_submitted: subcommands_names = args_array[0].toString();
+const user_submitted: subcommands_names = args_array[0].toString() as subcommands_names;
 
 if (!subcommand_list.includes(user_submitted)) {
     console.error(`${user_submitted} is not a command`);
