@@ -16,7 +16,7 @@ export async function importWorkspace(pwd: string, args: string[]) {
     console.log(pwd);
     let jwt_token: JWTBotmaker;
     try {
-        jwt_token = decode(apiToken)[1];
+        jwt_token = decode(apiToken)[1] as JWTBotmaker;
         console.log(`token: ${JSON.stringify(jwt_token)}`);
     } catch (_error) {
         console.error(
@@ -27,7 +27,9 @@ export async function importWorkspace(pwd: string, args: string[]) {
     const { businessId } = jwt_token;
     const workspacePath = join(pwd, businessId);
     if (existsSync(workspacePath)) {
-        console.error(`cannot create directory '${join(pwd, businessId)}': File exists`);
+        console.error(
+            `cannot create directory '${join(pwd, businessId)}': File exists`,
+        );
         Deno.exit(1);
     }
 
@@ -36,7 +38,9 @@ export async function importWorkspace(pwd: string, args: string[]) {
         try {
             return await getCustomerContext(apiToken);
         } catch (_e) {
-            console.error(`Cound not found a context. Please check if exist some chat for the business ${businessId}`);
+            console.error(
+                `Cound not found a context. Please check if exist some chat for the business ${businessId}`,
+            );
             Deno.exit(1);
         }
     })();
@@ -61,7 +65,10 @@ export async function importWorkspace(pwd: string, args: string[]) {
     const bmc_binary_path = join(".");
     const template_folder_path = join(bmc_binary_path, "workspaceTemplate");
     await copy(template_folder_path, workspacePath, { overwrite: true });
-    await Deno.writeTextFile(join(workspacePath, "context.json"), JSON.stringify(context, null, 4));
+    await Deno.writeTextFile(
+        join(workspacePath, "context.json"),
+        JSON.stringify(context, null, 4),
+    );
 
     await ensureDir(join(workspacePath, "src"));
 
@@ -70,7 +77,10 @@ export async function importWorkspace(pwd: string, args: string[]) {
     for (const ca of cas) {
         const baseName = formatName(ca.name);
         ca.filename = await getName(srcFolder, baseName, "js");
-        await Deno.writeTextFile(join(srcFolder, ca.filename), ca.unPublishedCode || ca.publishedCode, "UTF-8");
+        await Deno.writeTextFile(
+            join(srcFolder, ca.filename),
+            ca.unPublishedCode || ca.publishedCode,
+        );
     }
     const bmc: BMCFile = {
         cas,
@@ -91,7 +101,12 @@ function formatName(name: string): string {
     );
 }
 
-async function getName(folder: string, basename: string, extension: string, num?: number): Promise<string> {
+async function getName(
+    folder: string,
+    basename: string,
+    extension: string,
+    num = 1,
+): Promise<string> {
     const counterPart = num !== undefined ? `_${num}` : "";
     const finalName = `${basename}${counterPart}.${extension}`;
     const finalPath = join(folder, finalName);

@@ -1,6 +1,6 @@
 import { existsSync } from "@std/fs";
 
-export function runEndpointCa(wpPath: string, args: string[]) {
+export function runClientAction(wpPath: string, args: string[]) {
     if (args.length < 2) {
         console.error("Please submmit which code action to run");
         Deno.exit(1);

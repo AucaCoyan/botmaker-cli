@@ -3,10 +3,11 @@ export function add(a: number, b: number): number {
 }
 
 import { parseArgs } from "@std/cli/parse-args";
-import { runEndpointCa } from "./run_cmd.ts";
+import { runClientAction } from "./run_cmd.ts";
 import { print_help } from "./help_cmd.ts";
 import { subcommand_list, type subcommands_names } from "./types.ts";
 import { importWorkspace } from "./import_cmd.ts";
+import { getDiff } from "./diff_cmd.ts";
 
 const args = parseArgs(Deno.args, {
     alias: {
@@ -19,10 +20,11 @@ const args = parseArgs(Deno.args, {
     },
     boolean: ["help"],
 });
-console.log(`you passed ${JSON.stringify(args)}`);
+console.debug(`you passed ${JSON.stringify(args)}`);
 
 const args_array = args._.map((e) => e.toString());
-const user_submitted: subcommands_names = args_array[0].toString() as subcommands_names;
+const user_submitted: subcommands_names =
+    args_array[0].toString() as subcommands_names;
 
 if (!subcommand_list.includes(user_submitted)) {
     console.error(`${user_submitted} is not a command`);
@@ -39,7 +41,7 @@ const CWD = Deno.cwd();
 switch (user_submitted) {
     case "run":
         console.log("running run...");
-        runEndpointCa(CWD, args_array);
+        runClientAction(CWD, args_array);
         break;
     case "import":
         console.log("running import...");
@@ -53,6 +55,7 @@ switch (user_submitted) {
         break;
     case "diff":
         console.log("running diff...");
+        getDiff(CWD, "", "", false);
         break;
     case "pull":
         console.log("running pull...");

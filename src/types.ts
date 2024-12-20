@@ -25,12 +25,14 @@ export const subcommand_list: subcommands_names[] = [
     "help",
 ];
 
+type ClientActionTypes = "USER" | "ENDPOINT" | "SCHEDULE";
+
 export type ClientAction = {
     id: string;
     name: string;
-    type: string;
+    type: ClientActionTypes;
     // codigo inicial para publicar
-    publishedCode?: string;
+    publishedCode: string;
     unPublishedCode: string | null;
     // filename sample.js
     filename: string;

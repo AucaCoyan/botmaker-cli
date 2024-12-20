@@ -10,3 +10,7 @@
   - Create `PYTHON` environment variable and set
     `C:\Users\YOUR_USER\.windows-build-tools\python27\python.exe` directory
   - Run `bmc` on bash command-line
+
+## TODO list
+
+- cuando haces bmc import no te lee la carpeta workplaceTemplate.
