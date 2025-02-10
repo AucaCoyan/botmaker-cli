@@ -1,8 +1,17 @@
 {
     "tasks": {
-        "dev": "deno run --allow-read --allow-write --allow-net --watch src/main.ts",
-        "fmt": "biome format . --fix",
-        "compile": "deno compile --allow-read --allow-write --allow-net src/main.ts"
+        "check": {
+            "command": "biome check --write .",
+            "description": "formants and checks all files (except ignored files)"
+        },
+        "dev": {
+            "command": "deno run --frozen --allow-read --allow-write --allow-net --watch src/main.ts",
+            "dependencies": ["check"]
+        },
+        "compile": {
+            "command": "deno compile --allow-read --allow-write --allow-net src/main.ts",
+            "dependencies": ["check"]
+        }
     },
     "imports": {
         "@cliffy/command": "jsr:@cliffy/command@^1.0.0-rc.7",
