@@ -8,7 +8,9 @@ import { print_help } from "./help_cmd.ts";
 import { subcommand_list, type subcommands_names } from "./types.ts";
 import { importWorkspace } from "./import_cmd.ts";
 import { getDiff } from "./diff_cmd.ts";
+import { assertCannotReach } from "./errors.ts";
 
+/// parse the arguments given by the user
 const args = parseArgs(Deno.args, {
     alias: {
         run: "r",
@@ -20,66 +22,77 @@ const args = parseArgs(Deno.args, {
     },
     boolean: ["help"],
 });
-console.debug(`you passed ${JSON.stringify(args)}`);
 
-const args_array = args._.map((e) => e.toString());
-const user_submitted: subcommands_names =
-    args_array[0].toString() as subcommands_names;
+if (import.meta.main) {
+    console.debug(`you passed ${JSON.stringify(args)}`);
 
-if (!subcommand_list.includes(user_submitted)) {
-    console.error(`${user_submitted} is not a command`);
-    print_help();
-    Deno.exit(1);
-}
+    /// if no args, print the root help
+    if (args._.length === 0) {
+        console.debug("printing help");
+        print_help("root");
+    }
 
-if (args.help === true) {
-    print_help(user_submitted);
-}
+    /// only run if it's called this script as main. Not by importing this file
+    /// https://stackoverflow.com/questions/61829941/proper-way-to-define-a-main-script-in-deno
+    const args_array = args._.map((e) => e.toString());
+    const user_submitted: subcommands_names =
+        args_array[0].toString() as subcommands_names;
 
-const CWD = Deno.cwd();
+    /// check the command exists
+    if (!subcommand_list.includes(user_submitted)) {
+        console.error(`${user_submitted} is not a command`);
+        print_help("root");
+        Deno.exit(1);
+    }
 
-switch (user_submitted) {
-    case "run":
-        console.log("running run...");
-        runClientAction(CWD, args_array);
-        break;
-    case "import":
-        console.log("running import...");
-        importWorkspace(CWD, args_array);
-        break;
-    case "set-customer":
-        console.log("running set-customer...");
-        break;
-    case "status":
-        console.log("running status...");
-        break;
-    case "diff":
-        console.log("running diff...");
-        getDiff(CWD, "", "", false);
-        break;
-    case "pull":
-        console.log("running pull...");
-        break;
-    case "new":
-        console.log("running new...");
-        break;
-    case "push":
-        console.log("running push...");
-        break;
-    case "publish":
-        console.log("running publish...");
-        break;
-    case "rename":
-        console.log("running rename...");
-        break;
-    case "help":
-        print_help();
-        break;
-    default:
-        assertCannotReach(user_submitted);
-        break;
-}
+    /// print the help specified with `--help`
+    if (args.help === true) {
+        print_help(user_submitted);
+    }
 
-function assertCannotReach(_x: never) {
-    throw new Error("cannot reach this place in the code");
+    /// get the current working directory
+    const CWD = Deno.cwd();
+
+    /// switch on every possible command. Throw if not found
+    switch (user_submitted) {
+        case "run":
+            console.debug("running run...");
+            runClientAction(CWD, args_array);
+            break;
+        case "import":
+            console.debug("running import...");
+            importWorkspace(CWD, args_array);
+            break;
+        case "set-customer":
+            console.debug("running set-customer...");
+            break;
+        case "status":
+            console.debug("running status...");
+            break;
+        case "diff":
+            console.debug("running diff...");
+            getDiff(CWD, "", "", false);
+            break;
+        case "pull":
+            console.debug("running pull...");
+            break;
+        case "new":
+            console.debug("running new...");
+            break;
+        case "push":
+            console.debug("running push...");
+            break;
+        case "publish":
+            console.debug("running publish...");
+            break;
+        case "rename":
+            console.debug("running rename...");
+            break;
+        case "help":
+            print_help("root");
+            break;
+        default:
+            assertCannotReach(user_submitted);
+            break;
+    }
 }
