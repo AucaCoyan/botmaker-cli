@@ -12,7 +12,7 @@
         "enabled": true
     },
     "organizeImports": {
-        "enabled": false
+        "enabled": true
     },
     "javascript": {
         "formatter": {

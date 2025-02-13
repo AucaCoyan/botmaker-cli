@@ -6,11 +6,18 @@
         },
         "dev": {
             "command": "deno run --frozen --allow-read --allow-write --allow-net --watch src/main.ts",
-            "dependencies": ["check"]
+            "dependencies": [
+                "check"
+            ]
         },
         "compile": {
             "command": "deno compile --allow-read --allow-write --allow-net src/main.ts",
-            "dependencies": ["check"]
+            "dependencies": [
+                "check"
+            ]
+        },
+        "test": {
+            "command": "deno test --allow-read --allow-env=BM_access_token --allow-write --allow-net=go.botmaker.com --allow-run"
         }
     },
     "imports": {
