@@ -1,14 +1,11 @@
-export function add(a: number, b: number): number {
-    return a + b;
-}
-
 import { parseArgs } from "@std/cli/parse-args";
-import { runClientAction } from "./run_cmd.ts";
-import { print_help } from "./help_cmd.ts";
-import { subcommand_list, type subcommands_names } from "./types.ts";
-import { importWorkspace } from "./import_cmd.ts";
 import { getDiff } from "./diff_cmd.ts";
 import { assertCannotReach } from "./errors.ts";
+import { print_help } from "./help_cmd.ts";
+import { importWorkspace } from "./import_cmd.ts";
+import { CWD } from "./path_helpers.ts";
+import { runClientAction } from "./run_cmd.ts";
+import { subcommand_list, type subcommands_names } from "./types.ts";
 
 /// parse the arguments given by the user
 const args = parseArgs(Deno.args, {
@@ -49,9 +46,6 @@ if (import.meta.main) {
     if (args.help === true) {
         print_help(user_submitted);
     }
-
-    /// get the current working directory
-    const CWD = Deno.cwd();
 
     /// switch on every possible command. Throw if not found
     switch (user_submitted) {

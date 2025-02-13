@@ -1,5 +1,8 @@
 import { existsSync } from "@std/fs/exists";
 
+/// get the current working directory
+export const CWD = Deno.cwd();
+
 export function getWorkspacePath(dir: string) {
     if (existsSync(`${dir}/.bmc`)) {
         return dir;

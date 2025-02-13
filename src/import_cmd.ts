@@ -1,10 +1,10 @@
-import { decode } from "@zaubrik/djwt";
-import type { BMCFile, ClientAction, Context, JWTBotmaker } from "./types.ts";
 import { join } from "jsr:@std/path@^1.0.8/join";
-import { exists, existsSync } from "@std/fs/exists";
-import { getAllCas, getCustomerContext } from "./bm_http_client.ts";
-import { ensureDir, ensureDirSync } from "@std/fs/ensure-dir";
 import { copy } from "@std/fs/copy";
+import { ensureDir, ensureDirSync } from "@std/fs/ensure-dir";
+import { exists, existsSync } from "@std/fs/exists";
+import { decode } from "@zaubrik/djwt";
+import { getAllCas, getCustomerContext } from "./bm_http_client.ts";
+import type { BMCFile, ClientAction, Context, JWTBotmaker } from "./types.ts";
 
 export async function importWorkspace(pwd: string, args: string[]) {
     if (args.length < 2) {
@@ -38,6 +38,7 @@ export async function importWorkspace(pwd: string, args: string[]) {
         try {
             return await getCustomerContext(apiToken);
         } catch (_e) {
+            console.log(_e);
             console.error(
                 `Cound not found a context. Please check if exist some chat for the business ${businessId}`,
             );
