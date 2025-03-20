@@ -14,3 +14,7 @@
 ## TODO list
 
 - cuando haces bmc import no te lee la carpeta workplaceTemplate.
+- simil git
+  - hacer git init cuando termina de crear un repo
+  - no te deberia dejar hacer bmc pull si tenes un repo de git con unstaged changes
+
