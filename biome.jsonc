@@ -22,6 +22,9 @@
     "json": {
         "formatter": {
             "enabled": true
+        },
+        "parser": {
+            "allowComments": true
         }
     }
 }
