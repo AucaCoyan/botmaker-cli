@@ -1,0 +1,3 @@
+[submodule "bmc"]
+	path = bmc
+	url = https://github.com/botmaker-org/botmaker-cli
