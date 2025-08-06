@@ -8,7 +8,7 @@
     "format": "biome format . --fix",
     "fmt": "bun run format",
     "lint": "biome check . --fix",
-    "test": "bun test"
+    "test": "bun test --coverage"
   },
   "preferGlobal": true,
   "bin": {
