@@ -21,7 +21,7 @@ const formatName = (name) =>
     .toLowerCase();
 
 const getName = async (folder, basename, extension, num) => {
-  const counterPart = num !== undefined ? '_' + num : '';
+  const counterPart = num !== undefined ? `_${num}` : '';
   const finalName = `${basename}${counterPart}.${extension}`;
   const finalPath = path.join(folder, finalName);
   const isTaken = await exists(finalPath);

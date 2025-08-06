@@ -21,7 +21,6 @@ const breakLines = (text, max) => {
 };
 
 const defaultBorders = ['╭', '╮', '∠', '╯', '│', '─'];
-const doubleBorders = ['╔', '╗', '╚', '╝', '║', '═'];
 const boxedBorders = ['┌', '┐', '└', '┘', '│', '─'];
 const dashedBorder = ['┌', '┐', '└', '┘', '╎', '╌'];
 const emptyBorders = [' ', ' ', ' ', ' ', ' ', ' '];

@@ -79,8 +79,8 @@ const completePush = async (pwd) => {
   const wpPath = await getWorkspacePath(pwd);
   const { token, cas } = await getBmc(wpPath);
   const changesGenerator = getStatus.getStatusChanges(pwd);
-  let toPush = [];
-  for await (let statucChanges of changesGenerator) {
+  const toPush = [];
+  for await (const statucChanges of changesGenerator) {
     const { status, changes } = statucChanges;
     if (hasIncomingChanges(changes)) {
       throw new Error('There is incoming changes you must make an pull first.');

@@ -140,8 +140,8 @@ const getCaPath = async (wpPath, caName) => {
     caName,
     caName && path.join(wpPath, caName),
     caName && path.join(wpPath, 'src', caName),
-    caName && path.join(wpPath, caName + '.js'),
-    caName && path.join(wpPath, 'src', caName + '.js'),
+    caName && path.join(wpPath, `${caName}.js`),
+    caName && path.join(wpPath, 'src', `${caName}.js`),
   ];
 
   for (const path of posiblePaths) {

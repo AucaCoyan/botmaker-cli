@@ -25,14 +25,11 @@ const hasIncomingChanges = (changes) => {
 
 const rename = async (pwd, caName, newName) => {
   const wpPath = await getWorkspacePath(pwd);
-  const { changes, status } = await getStatus.getSingleStatusChanges(
-    pwd,
-    caName,
-  );
+  const { changes } = await getStatus.getSingleStatusChanges(pwd, caName);
   if (hasIncomingChanges(changes)) {
     throw new Error('There is incoming changes. You must make a pull first.');
   }
-  if (!newName || caName == newName) {
+  if (!newName || caName === newName) {
     console.log(
       chalk.green('You need to provide a new name por the client action.'),
     );

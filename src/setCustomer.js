@@ -17,7 +17,7 @@ const setCustomer = async (pwd, customerId) => {
     try {
       return await getCustomerContext(token, customerId);
     } catch (e) {
-      console.error('Cound not found a context for cutomer id = ' + customerId);
+      console.error(`Cound not found a context for cutomer id = ${customerId}`);
       throw e;
     }
   })();

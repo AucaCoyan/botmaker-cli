@@ -15,9 +15,7 @@ module.exports = (url, urlOptions, data) => {
             body: body,
           });
         } else {
-          reject(
-            'Request failed. status: ' + res.statusCode + ', body: ' + body,
-          );
+          reject(`Request failed. status: ${res.statusCode}, body: ${body}`);
         }
       });
     });

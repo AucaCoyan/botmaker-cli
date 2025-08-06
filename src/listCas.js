@@ -5,7 +5,7 @@ const getWorkspacePath = require('./getWorkspacePath');
 const ENDPOINT_TAG = `${chalk.magenta(`En`)}:`;
 const USER_TAG = `${chalk.cyan(`Us`)}:`;
 const getCodeActionTypeTag = (ca) => {
-  if (ca.type == 'ENDPOINT') {
+  if (ca.type === 'ENDPOINT') {
     return ENDPOINT_TAG;
   } else {
     return USER_TAG;

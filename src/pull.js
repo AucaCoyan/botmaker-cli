@@ -166,7 +166,7 @@ const completePull = async (pwd) => {
   const changesGenerator = getStatus.getStatusChanges(pwd);
   let newCas = cas;
   let withMerges = false;
-  for await (let statucChanges of changesGenerator) {
+  for await (const statucChanges of changesGenerator) {
     const { status, changes } = statucChanges;
     newCas = await makeChanges(wpPath, newCas, status, changes);
     withMerges = withMerges || hasMerge(changes);
