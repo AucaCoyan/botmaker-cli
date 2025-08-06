@@ -150,5 +150,5 @@ const main = async (args) => {
 };
 
 module.exports = (args) => {
-  main(args).catch((e) => console.error(`bmc: ${e.message || e}`));
+  main(args).catch((e) => console.error(`bmc: ${e}`));
 };
