@@ -328,7 +328,7 @@ async function* getStatusChanges(pwd) {
     const c2 = ca2.name || ca2.filename;
     return c1.localeCompare(c2);
   });
-  for (let ca of allCas) {
+  for (const ca of allCas) {
     const status = await getStatusData(wpPath, ca, remoteCas);
     const changes = getChangesFromStatus(status);
     yield { changes, status };
@@ -348,7 +348,7 @@ const getStatus = async (pwd, caName) => {
   } else {
     const statusChanges = getStatusChanges(pwd, caName);
     const changesSet = new Set();
-    for await (let statusChange of statusChanges) {
+    for await (const statusChange of statusChanges) {
       if (statusChange.changes.length === 0) {
         continue;
       }
