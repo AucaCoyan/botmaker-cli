@@ -8,7 +8,7 @@
       "cwd": "${workspaceFolder}",
       "runtimeExecutable": "bmc",
       "skipFiles": ["<node_internals>/**"],
-      "runtimeArgs": ["run","${file}"],
+      "runtimeArgs": ["run", "${file}"],
       "console": "integratedTerminal"
     }
   ]

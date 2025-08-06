@@ -6,13 +6,12 @@ const exec = require('child_process').exec;
 
 const { getBmc, saveBmc } = require('./bmcConfig');
 const getWorkspacePath = require('./getWorkspacePath');
-const importWorkspace = require("./importWorkspace");
-const { createCa } = require("./bmService");
+const importWorkspace = require('./importWorkspace');
+const { createCa } = require('./bmService');
 
 const writeFile = util.promisify(fs.writeFile);
 
-const baseEndPointCa =
-`const redis = req.connectRedis();
+const baseEndPointCa = `const redis = req.connectRedis();
 
 const main = async () => {
   // TODO my code here
@@ -37,10 +36,9 @@ main()
     res.end();
     redis.quit();
   });
-`
+`;
 
-const baseCa =
-`const IS_TEST = user.get('botmakerEnvironment') === 'DEVELOPMENT';
+const baseCa = `const IS_TEST = user.get('botmakerEnvironment') === 'DEVELOPMENT';
 
 const main = async () => {
   // TODO your code here
@@ -62,19 +60,23 @@ main()
 
 const createFileAndStatus = async (wpPath, ca, openVsCode) => {
   const baseName = importWorkspace.formatName(ca.name);
-  const newFileName = await importWorkspace.getName(path.join(wpPath, 'src'), baseName, 'js');
+  const newFileName = await importWorkspace.getName(
+    path.join(wpPath, 'src'),
+    baseName,
+    'js',
+  );
 
   const filePath = path.join(wpPath, 'src', newFileName);
   await writeFile(filePath, ca.publishedCode, 'UTF-8');
   console.log(chalk.green(`${filePath} was added`));
-  if(openVsCode){
+  if (openVsCode) {
     exec(`code "${filePath}"`);
   }
   return {
     ...ca,
     filename: newFileName,
   };
-}
+};
 
 const newCa = async (pwd, caName, type, openVsCode = false) => {
   const newCa = {
@@ -88,7 +90,7 @@ const newCa = async (pwd, caName, type, openVsCode = false) => {
   const ca = JSON.parse(resp.body);
   const status = await createFileAndStatus(wpPath, ca, openVsCode);
   const newCas = cas.concat(status);
-  await saveBmc(wpPath,token,newCas);
+  await saveBmc(wpPath, token, newCas);
 };
 
 module.exports = newCa;
