@@ -1,0 +1,10 @@
+{
+    "deno.enable": true,
+    "[json]": {
+        "editor.quickSuggestions": {
+            "strings": true
+        },
+        "editor.suggest.insertMode": "replace",
+        "editor.defaultFormatter": "biomejs.biome"
+    }
+}

@@ -51,11 +51,11 @@ interface BmItemsBuilder {
 
 interface AppleBusinesChatCustomInteractiveMessage {
     addImageReferenceURL: (
-        url: string = "https://placeimg.com/840/630/animals",
+        url: string,
     ) => AppleBusinesChatCustomInteractiveMessage;
     setReceivedMessage: (
-        imageRefIndex: number = 0,
-        title: string = "default title",
+        imageRefIndex: number,
+        title: string ,
     ) => AppleBusinesChatCustomInteractiveMessage;
     setCustom: (bid: string, appId: string, appName: string, URL: string) => AppleBusinesChatCustomInteractiveMessage;
     send: () => void;

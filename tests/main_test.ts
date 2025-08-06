@@ -1,10 +1,12 @@
+import { join } from "jsr:@std/path@^1.0.8/join";
 import { assertEquals } from "@std/assert";
+import { emptyDirSync } from "@std/fs";
+import { existsSync } from "@std/fs/exists";
+import { getName } from "../bmc/src/importWorkspace.js";
 import { importWorkspace } from "../src/import_cmd.ts";
 import { CWD } from "../src/path_helpers.ts";
-import { existsSync } from "@std/fs/exists";
-import { join } from "jsr:@std/path@^1.0.8/join";
-import { emptyDirSync } from "@std/fs";
 
+getName(".");
 Deno.test(function help() {
     assertEquals(true, true);
 });
