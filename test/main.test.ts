@@ -1,4 +1,4 @@
-import { expect, spyOn, test } from 'bun:test';
+import { expect, mock, test } from 'bun:test';
 
 import bmcConfig from '../src/bmcConfig';
 import bmService from '../src/bmService';
@@ -7,7 +7,7 @@ import caRunner from '../src/caRunner';
 import getDiff from '../src/getDiff';
 import getStatus from '../src/getStatus';
 import getWorkspacePath from '../src/getWorkspacePath';
-import httpPromise from '../src/httpPromise';
+// const httpPromise = require('../src/httpPromise');
 import importWorkspace from '../src/importWorkspace';
 import main from '../src/index';
 import listCas from '../src/listCas';
@@ -20,6 +20,10 @@ import resultRenderer from '../src/resultRenderer';
 import run from '../src/run';
 import setCustomer from '../src/setCustomer';
 import utils from '../src/utils';
+
+const httpPromise = mock.module('../src/httpPromise', () => {
+  return { https: (url, urlOptions, data) => undefined };
+});
 
 test('getBmc reads properly', async () => {
   Bun.write('./.bmc', JSON.stringify({ hello: 'world' }));
@@ -37,10 +41,25 @@ test('getBmc writes properly', async () => {
 });
 
 test('getCa', async () => {
+  const token = 'a token';
+  const caId = '12345';
+
   const succesfulreturn = { a: 'return' };
-  const httpSpy = spyOn(bmService, 'getCa').mockResolvedValue(succesfulreturn);
-  expect(await bmService.getCa('a token', 'ca ID')).toEqual({ a: 'return' });
-  expect(httpSpy).toHaveBeenCalled();
+
+  const headers = {
+    Accept: 'application/json',
+    'Content-Type': 'application/x-www-form-urlencoded',
+    'access-token': token,
+  };
+  // const httpSpy = spyOn(httpPromiseModule, http).mockResolvedValue(
+  //   succesfulreturn,
+  // );
+  expect(await bmService.getCa(token, caId)).toEqual({ a: 'return' });
+  expect(httpPromise).toHaveBeenCalled();
+  expect(httpPromise).toHaveBeenCalledWith(
+    `https://go.botmaker.com/api/v1.0/clientAction/${caId}`,
+    headers,
+  );
 });
 
 test.todo('caEndpointRunner', async () => {
