@@ -59,9 +59,6 @@ const ___runMain = (bmContext, code, filename, helpers) => {
 
 exports.runner = async (code, context, helpers, fulfill, token, filename) => {
   const chalk = require('chalk');
-  const __redisLib__ = require('redis');
-  bluebird.promisifyAll(__redisLib__.RedisClient.prototype);
-  bluebird.promisifyAll(__redisLib__.Multi.prototype);
 
   const __parceStackTrace = (error) => {
     if (error.stack) {
@@ -140,20 +137,9 @@ exports.runner = async (code, context, helpers, fulfill, token, filename) => {
   try {
     const bmconsole = console;
     const connectRedis = () => {
-      const redis = __redisLib__.createClient(6379, 'redis.botmaker.com', {
-        password: token,
-        socket_keepalive: false,
-        retry_strategy: (options) => {
-          if (options.attempt > 4) return undefined; // end reconnecting with built in error
-          return options.attempt * 100; // reconnect after
-        },
-      });
-
-      redis.on('error', function (err) {
-        console.error('Node-redis client error: ' + err);
-      });
-      // redis.unref(); // allowing the program to exit once no more commands are pending
-      return redis;
+      throw Error(
+        'unimplemented!\n   due to compilation problems, i decided to remove support for the redis client until further notice',
+      );
     };
 
     const entityLoader = (entityName, cb) => {

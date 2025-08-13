@@ -1,5 +1,4 @@
 import { RequestPromiseAPI } from 'request-promise';
-import { RedisClient } from 'redis';
 import * as context from './context.json';
 import fs from 'fs';
 import lolodashdash from 'lodash';
@@ -363,21 +362,12 @@ type PromisifyAllItems<T> = {
 type NonNeverValues<T> = {
   [K in keyof T as T[K] extends never ? never : K]: T[K];
 };
-type PromisifyAll<T> = NonNeverValues<PromisifyAllItems<T>> & T;
-
-type RedisPromisfy = PromisifyAll<RedisClient>;
-
-type ConnectRedis = () => RedisPromisfy;
-
 declare global {
   declare const result: BmResult;
   declare const user: BmUser;
   declare const bmconsole: BmConsole;
   declare const rp: RequestPromiseAPI;
   declare const context: BContext;
-  declare const connectRedis: ConnectRedis;
-  declare const req: Request & { connectRedis: ConnectRedis };
-  declare const request: Request & { connectRedis: ConnectRedis };
   declare const res: Response;
   declare const response: Response;
   declare const fs = fs;

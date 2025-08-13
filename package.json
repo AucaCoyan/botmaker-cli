@@ -36,7 +36,6 @@
     "node-fetch": "^2.6.6",
     "oauth-1.0a": "^2.2.6",
     "pg": "^8.7.3",
-    "redis": "^2.8.0",
     "request": "^2.88.2",
     "request-promise": "^4.2.5",
     "secure-random": "^1.1.1",
