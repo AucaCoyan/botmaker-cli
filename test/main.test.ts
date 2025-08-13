@@ -1,4 +1,4 @@
-import { expect, mock, test } from 'bun:test';
+import { expect, test } from 'bun:test';
 
 import bmcConfig from '../src/bmcConfig';
 import bmService from '../src/bmService';
@@ -7,7 +7,6 @@ import caRunner from '../src/caRunner';
 import getDiff from '../src/getDiff';
 import getStatus from '../src/getStatus';
 import getWorkspacePath from '../src/getWorkspacePath';
-// const httpPromise = require('../src/httpPromise');
 import importWorkspace from '../src/importWorkspace';
 import main from '../src/index';
 import listCas from '../src/listCas';
@@ -21,12 +20,10 @@ import run from '../src/run';
 import setCustomer from '../src/setCustomer';
 import utils from '../src/utils';
 
-const httpPromise = mock.module('../src/httpPromise', () => {
-  return { https: (url, urlOptions, data) => undefined };
-});
+const mockedHttpPromiseModule = require('../src/httpPromise'); // a mock() function
 
 test('getBmc reads properly', async () => {
-  Bun.write('./.bmc', JSON.stringify({ hello: 'world' }));
+  await Bun.write('./.bmc', JSON.stringify({ hello: 'world' }));
   expect(await bmcConfig.getBmc('.')).toEqual({ hello: 'world' });
   Bun.file('./.bmc').delete();
 });
@@ -41,24 +38,24 @@ test('getBmc writes properly', async () => {
 });
 
 test('getCa', async () => {
+  // parameters
   const token = 'a token';
   const caId = '12345';
-
-  const succesfulreturn = { a: 'return' };
-
   const headers = {
     Accept: 'application/json',
     'Content-Type': 'application/x-www-form-urlencoded',
     'access-token': token,
   };
-  // const httpSpy = spyOn(httpPromiseModule, http).mockResolvedValue(
-  //   succesfulreturn,
-  // );
-  expect(await bmService.getCa(token, caId)).toEqual({ a: 'return' });
-  expect(httpPromise).toHaveBeenCalled();
-  expect(httpPromise).toHaveBeenCalledWith(
+
+  // mocked https return
+  mockedHttpPromiseModule.https.mockReset();
+  mockedHttpPromiseModule.https.mockReturnValue({ sample: 'return' });
+
+  expect(await bmService.getCa(token, caId)).toEqual({ sample: 'return' });
+  expect(mockedHttpPromiseModule.https).toHaveBeenCalledTimes(1);
+  expect(mockedHttpPromiseModule.https).toHaveBeenCalledWith(
     `https://go.botmaker.com/api/v1.0/clientAction/${caId}`,
-    headers,
+    { headers },
   );
 });
 
