@@ -1,4 +1,5 @@
-const https = require('./httpPromise');
+const httpsModule = require('./httpPromise');
+const https = httpsModule.https;
 
 const baseUrl = 'https://go.botmaker.com';
 

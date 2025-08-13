@@ -57,7 +57,7 @@ const ___runMain = (bmContext, code, filename, helpers) => {
   vm.runInNewContext(code, mainContext, { filename });
 };
 
-module.exports = (code, context, helpers, fulfill, token, filename) => {
+exports.runner = async (code, context, helpers, fulfill, token, filename) => {
   const chalk = require('chalk');
   const __redisLib__ = require('redis');
   bluebird.promisifyAll(__redisLib__.RedisClient.prototype);

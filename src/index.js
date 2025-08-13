@@ -149,6 +149,6 @@ const main = async (args) => {
   }
 };
 
-module.exports = (args) => {
+exports.main = (args) => {
   main(args).catch((e) => console.error(`bmc: ${e}`));
 };

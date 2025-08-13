@@ -1,6 +1,6 @@
 const https = require('https');
 
-module.exports = (url, urlOptions, data) => {
+exports.https = async (url, urlOptions, data) => {
   return new Promise((resolve, reject) => {
     const req = https.request(url, urlOptions, (res) => {
       res.setEncoding('utf8');
